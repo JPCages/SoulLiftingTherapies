@@ -1,4 +1,25 @@
-"use client";
-import { useState } from "react";
-import { services, slots } from "../../lib/sandbox-data";
-export default function Book() { const [slot, setSlot] = useState("one"); const [sent, setSent] = useState(false); if (sent) return <main className="success"><p className="eyebrow">Sandbox confirmation</p><h1>Test request received.</h1><p>No booking has been made, no email was sent and no deposit was requested.</p><button className="primary" onClick={() => setSent(false)}>Try again</button></main>; return <main><header className="nav"><a className="wordmark" href="/">Soul Lifting <i>Therapies</i></a><a className="nav-button" href="/portal">Emma&apos;s portal</a></header><section className="page-hero"><p className="eyebrow">Sandbox booking preview</p><h1>Choose your time out.</h1><p>These are example slots only. The real app will check Fresha before confirming anything.</p></section><form className="booking" onSubmit={(e) => { e.preventDefault(); setSent(true); }}><fieldset><legend>1. Choose an example slot</legend>{slots.map((item) => <label className={slot === item.id ? "slot selected" : "slot"} key={item.id}><input type="radio" checked={slot === item.id} onChange={() => setSlot(item.id)} /><span><b>{item.location}</b>{item.time}<small>{item.length} available</small></span></label>)}</fieldset><fieldset><legend>2. Choose a treatment</legend><select required><option value="">Choose a treatment</option>{services.map((item) => <option key={item.name}>{item.name} - {item.price} · {item.duration}</option>)}</select><p className="note">When live, Emma checks the request against Fresha first, then sends the £10 deposit link.</p></fieldset><fieldset><legend>3. Your details</legend><div className="grid"><label>First name<input required /></label><label>Surname<input required /></label><label>Email<input type="email" required /></label><label>Mobile number<input required /></label></div></fieldset><button className="primary">Send test booking request</button></form></main>; }
+'use client';
+
+import { useEffect, useMemo, useState } from 'react';
+import { defaultSiteContent, type SiteContent } from '@/lib/site-content';
+
+const tabs = ['Massage','Facials','Advanced Facials','Waxing','Eyes & Lashes','Cryotherapy','Holistic'];
+const categoryName:Record<string,string>={Massage:'Massage',Facials:'Facials & advanced skin','Advanced Facials':'Facials & advanced skin',Waxing:'Lycon waxing','Eyes & Lashes':'Eyes & lashes',Cryotherapy:'Cryotherapy',Holistic:'Holistic treatments'};
+const images:Record<string,string>={Massage:'/images/room-forest.jpeg','Facials & advanced skin':'/images/lymphflo.png','Lycon waxing':'/images/wax-underarm.jpg','Eyes & lashes':'/images/emma.jpeg',Cryotherapy:'/images/room-shelf.jpeg','Holistic treatments':'/images/room-forest.jpeg'};
+
+export default function Services(){
+  const [content,setContent]=useState<SiteContent>(defaultSiteContent);
+  const [active,setActive]=useState('Massage');
+  useEffect(()=>{fetch('/api/content').then(r=>r.ok?r.json():null).then(x=>x&&setContent(x)).catch(()=>{})},[]);
+  const category=useMemo(()=>content.categories.find(c=>c.name===categoryName[active])??content.categories[0],[active,content]);
+  return <main className="treatments-app">
+    <header className="app-topbar"><a className="mini-brand" href="/" aria-label="Soul Lifting Therapies home"><span className="lotus">♢</span><span>SOUL LIFTING<br/>THERAPIES</span></a><h1>Treatments</h1><a className="basket" href="/book" aria-label="Bookings">⌑</a></header>
+    <nav className="treatment-tabs" aria-label="Treatment categories">{tabs.map(tab=><button key={tab} className={active===tab?'active':''} onClick={()=>setActive(tab)}>{tab}</button>)}</nav>
+    <section className="catalogue-list" aria-live="polite"><div className="catalogue-intro"><h2>{active}</h2><p>{category.short}</p></div>{category.services.map((service,index)=><a className="luxury-treatment-card" href="/book" key={service.name}>
+      <span className="treatment-photo" style={{backgroundImage:`linear-gradient(rgba(3,35,35,.03),rgba(3,35,35,.03)),url('${images[category.name]}')`,backgroundPosition:index%2?'center 62%':'center'}}/>
+      <span className="treatment-copy"><strong>{service.name}</strong><span className="duration"><i>◷</i> {service.duration}</span><span className="price">{service.price}</span></span><span className="chevron">›</span>
+    </a>)}</section>
+    <aside className="catalogue-help"><p>Not sure which treatment is right for you?</p><a href={`https://wa.me/44${content.phone.replace(/\D/g,'').replace(/^0/,'')}`}>Ask Emma</a></aside>
+    <nav className="app-bottom-nav" aria-label="Main navigation"><a href="/"><span>⌂</span>Home</a><a className="active" href="/services"><span>▣</span>Treatments</a><a href="/account"><span>✿</span>Rewards</a><a href="/book"><span>▤</span>Bookings</a><a href="/account"><span>♙</span>Profile</a></nav>
+  </main>
+}
