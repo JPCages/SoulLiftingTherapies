@@ -495,3 +495,21 @@ footer {
 .feeling-row .feeling-icon { width:60px; flex:0 0 auto; text-align:center; font-size:1.1rem; }
 .feeling-row > input:nth-child(2) { flex:1; min-width:0; }
 .feeling-row .danger { flex:0 0 auto; }
+
+/* ---- Unified login ---- */
+.login-tabs { display:flex; gap:8px; margin:1.2rem 0 1rem; }
+.login-tabs button { flex:1; padding:.7rem; border:1px solid #a9c2bc; border-radius:10px; background:transparent; color:var(--cream); font:inherit; font-weight:700; cursor:pointer; }
+.login-tabs button.active { background:var(--cream); color:var(--teal); border-color:var(--cream); }
+.login-error { color:#ffd7cf; background:rgba(0,0,0,.15); padding:.6rem .8rem; border-radius:8px; font-size:.85rem; }
+.login-switch { margin-top:1.2rem; font-size:.85rem; color:#cfe0dc; }
+.login-switch button { background:none; border:0; color:var(--cream); font:inherit; font-weight:700; text-decoration:underline; cursor:pointer; padding:0; }
+.text-button { background:none; border:0; color:var(--cream); font:inherit; cursor:pointer; padding:0; margin-bottom:.5rem; }
+
+/* ---- Account: sign out ---- */
+.apphead .signout { justify-self:end; border:1px solid rgba(11,82,91,.35); background:transparent; color:var(--teal); border-radius:99px; padding:6px 12px; font-size:.66rem; font-weight:700; cursor:pointer; }
+.bottomnav .navbtn { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; color:#294043; font-size:1.05rem; background:none; border:0; cursor:pointer; font-family:inherit; }
+.bottomnav .navbtn span { font-size:.55rem; font-weight:600; }
+
+/* Login submit button must stand out on the teal page */
+.login form .primary { width:100%; background:var(--cream); color:var(--teal); margin-top:.5rem; text-align:center; }
+.login form .primary:disabled { opacity:.7; }

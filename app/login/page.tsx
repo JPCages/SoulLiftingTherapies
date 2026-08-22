@@ -1,11 +1,38 @@
 'use client';
 import {FormEvent,useEffect,useState} from 'react';
 import {defaultSiteContent,type SiteContent} from '@/lib/site-content';
+
 export default function Login(){
   const [content,setContent]=useState<SiteContent>(defaultSiteContent);
-  const [view,setView]=useState<'start'|'customer'|'admin'>('start');
+  const [mode,setMode]=useState<'signin'|'register'>('signin');
   const [error,setError]=useState('');const [busy,setBusy]=useState(false);
   useEffect(()=>{fetch('/api/content').then(r=>r.ok?r.json():null).then(x=>x&&setContent(x)).catch(()=>{})},[]);
-  async function signIn(e:FormEvent<HTMLFormElement>){e.preventDefault();setBusy(true);setError('');const data=new FormData(e.currentTarget);const r=await fetch('/api/admin/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email:data.get('email'),password:data.get('password')})});if(r.ok){location.href='/portal';return}setError('That email or password is not correct.');setBusy(false)}
-  return <main className="login"><a className="back" href="/">← {content.businessName}</a><section>{view==='start'?<><p className="eyebrow">{content.loginEyebrow}</p><h1>{content.loginHeading}</h1><p>{content.loginIntro}</p><button className="login-choice" onClick={()=>setView('customer')}><b>{content.loginCustomerTitle}</b><span>{content.loginCustomerBlurb}</span></button><button className="login-choice" onClick={()=>setView('admin')}><b>{content.loginAdminTitle}</b><span>{content.loginAdminBlurb}</span></button></>:view==='customer'?<><button className="text-button" onClick={()=>setView('start')}>← Back</button><p className="eyebrow">Customer account</p><h1>Your wellbeing, in one place.</h1><p>The customer account is currently in preview mode.</p><a className="primary" href="/account">View customer preview</a></>:<><button className="text-button" onClick={()=>setView('start')}>← Back</button><p className="eyebrow">Emma’s admin area</p><h1>Manage your business.</h1><form onSubmit={signIn}><label>Email address<input name="email" type="email" required autoComplete="email"/></label><label>Password<input name="password" type="password" required autoComplete="current-password"/></label>{error&&<p>{error}</p>}<button className="primary" disabled={busy}>{busy?'Signing in…':'Sign in'}</button></form></>}</section></main>;
+
+  async function submit(e:FormEvent<HTMLFormElement>){
+    e.preventDefault();setBusy(true);setError('');
+    const data=new FormData(e.currentTarget);
+    const endpoint=mode==='register'?'/api/auth/register':'/api/auth/login';
+    const body=mode==='register'
+      ? {name:data.get('name'),email:data.get('email'),password:data.get('password')}
+      : {email:data.get('email'),password:data.get('password')};
+    const r=await fetch(endpoint,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});
+    const out=await r.json().catch(()=>({}));
+    if(r.ok){location.href=out.role==='admin'?'/portal':'/account';return}
+    setError(out.error||'Something went wrong. Please try again.');setBusy(false);
+  }
+
+  return <main className="login"><a className="back" href="/">← {content.businessName}</a><section>
+    <p className="eyebrow">{content.loginEyebrow}</p>
+    <h1>{mode==='register'?'Create your account.':content.loginHeading}</h1>
+    <p>{mode==='register'?'Set up your private space for appointments, progress and rewards.':content.loginIntro}</p>
+    <div className="login-tabs"><button type="button" className={mode==='signin'?'active':''} onClick={()=>{setMode('signin');setError('')}}>Sign in</button><button type="button" className={mode==='register'?'active':''} onClick={()=>{setMode('register');setError('')}}>Create account</button></div>
+    <form onSubmit={submit}>
+      {mode==='register'&&<label>Your name<input name="name" type="text" required autoComplete="name"/></label>}
+      <label>Email address<input name="email" type="email" required autoComplete="email"/></label>
+      <label>Password<input name="password" type="password" required autoComplete={mode==='register'?'new-password':'current-password'} minLength={mode==='register'?8:undefined}/></label>
+      {error&&<p className="login-error">{error}</p>}
+      <button className="primary" disabled={busy}>{busy?'Please wait…':mode==='register'?'Create account':'Sign in'}</button>
+    </form>
+    <p className="login-switch">{mode==='signin'?<>New here? <button type="button" onClick={()=>{setMode('register');setError('')}}>Create an account</button></>:<>Already have an account? <button type="button" onClick={()=>{setMode('signin');setError('')}}>Sign in</button></>}</p>
+  </section></main>;
 }
