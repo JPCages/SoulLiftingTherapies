@@ -40,3 +40,9 @@ next-env.d.ts
 /.sites-runtime/
 /outputs/
 /work/
+
+# transport / deploy helpers (never commit)
+*.bundle
+push-fix.sh
+deploy-update.sh
+apply-fixes.sh

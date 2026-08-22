@@ -16,7 +16,7 @@ export default function Services(){
     <header className="app-topbar"><a className="mini-brand" href="/" aria-label="Soul Lifting Therapies home"><span className="lotus">♢</span><span>SOUL LIFTING<br/>THERAPIES</span></a><h1>Treatments</h1><a className="basket" href="/book" aria-label="Bookings">⌑</a></header>
     <nav className="treatment-tabs" aria-label="Treatment categories">{tabs.map(tab=><button key={tab} className={active===tab?'active':''} onClick={()=>setActive(tab)}>{tab}</button>)}</nav>
     <section className="catalogue-list" aria-live="polite"><div className="catalogue-intro"><h2>{active}</h2><p>{category.short}</p></div>{category.services.map((service,index)=><a className="luxury-treatment-card" href="/book" key={service.name}>
-      <span className="treatment-photo" style={{backgroundImage:`linear-gradient(rgba(3,35,35,.03),rgba(3,35,35,.03)),url('${images[category.name]}')`,backgroundPosition:index%2?'center 62%':'center'}}/>
+      <span className="treatment-photo" style={{backgroundImage:`linear-gradient(rgba(3,35,35,.03),rgba(3,35,35,.03)),url('${service.image||category.image||images[category.name]}')`,backgroundPosition:index%2?'center 62%':'center'}}/>
       <span className="treatment-copy"><strong>{service.name}</strong><span className="duration"><i>◷</i> {service.duration}</span><span className="price">{service.price}</span></span><span className="chevron">›</span>
     </a>)}</section>
     <aside className="catalogue-help"><p>Not sure which treatment is right for you?</p><a href={`https://wa.me/44${content.phone.replace(/\D/g,'').replace(/^0/,'')}`}>Ask Emma</a></aside>
