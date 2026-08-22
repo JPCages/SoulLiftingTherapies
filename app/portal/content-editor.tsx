@@ -4,9 +4,10 @@ import {defaultSiteContent,withDefaults,type SiteContent,type Feeling} from '@/l
 import type {Category,Service} from '@/lib/sandbox-data';
 
 const blankService:Service={name:'New treatment',price:'£0',duration:'30 minutes',description:'',note:''};
-type Section='overview'|'homepage'|'services'|'account'|'booking'|'login'|'locations';
-const NAV:[Section,string][]=[['overview','Dashboard'],['homepage','Homepage'],['services','Treatments'],['account','Customer app'],['booking','Booking'],['login','Sign-in page'],['locations','Business details']];
-const TITLE:Record<Section,string>={overview:'Dashboard',homepage:'Edit homepage',services:'Treatment catalogue',account:'Customer app',booking:'Booking page',login:'Sign-in page',locations:'Business details'};
+type Section='overview'|'homepage'|'services'|'account'|'booking'|'login'|'locations'|'loyalty';
+const NAV:[Section,string][]=[['overview','Dashboard'],['homepage','Homepage'],['services','Treatments'],['account','Customer app'],['booking','Booking'],['login','Sign-in page'],['locations','Business details'],['loyalty','Loyalty & customers']];
+const TITLE:Record<Section,string>={overview:'Dashboard',homepage:'Edit homepage',services:'Treatment catalogue',account:'Customer app',booking:'Booking page',login:'Sign-in page',locations:'Business details',loyalty:'Loyalty & customers'};
+type CustomerRow={id:number;name:string;email:string;balance:number;total_spent_pennies:number};
 
 // Compress an image in the browser so uploads stay small and fast.
 function compress(file:File,maxDim=1400,quality=0.72):Promise<string>{
@@ -48,7 +49,15 @@ export default function ContentEditor(){
  const [status,setStatus]=useState('');
  const [section,setSection]=useState<Section>('overview');
  const [uploading,setUploading]=useState('');
+ const [customers,setCustomers]=useState<CustomerRow[]>([]);
+ const [custMsg,setCustMsg]=useState('');
+ const [amounts,setAmounts]=useState<Record<number,string>>({});
  useEffect(()=>{fetch('/api/content').then(r=>r.json()).then(x=>setContent(withDefaults(x))).catch(()=>{})},[]);
+ const loadCustomers=()=>fetch('/api/admin/customers').then(r=>r.json()).then(d=>setCustomers(d.customers||[])).catch(()=>{});
+ useEffect(()=>{if(section==='loyalty')loadCustomers()},[section]);
+ const setNum=(k:keyof SiteContent,v:string)=>setContent(c=>({...c,[k]:v===''?undefined:Number(v)}));
+ const addVisit=async(id:number)=>{const amount=parseFloat(amounts[id]??'50');if(!(amount>0)){setCustMsg('Enter a valid amount');return}setCustMsg('Adding…');const r=await fetch('/api/admin/customers',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({customerId:id,amount})});const o=await r.json().catch(()=>({}));if(r.ok){setCustMsg(`Added ${o.pointsAdded} point${o.pointsAdded===1?'':'s'} to that customer.`);loadCustomers()}else setCustMsg(o.error||'Could not add visit')};
+ const redeem=async(id:number)=>{if(!confirm('Redeem one reward for this customer? This subtracts the reward points from their balance.'))return;setCustMsg('Redeeming…');const r=await fetch('/api/admin/customers/redeem',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({customerId:id})});const o=await r.json().catch(()=>({}));if(r.ok){setCustMsg('Reward redeemed.');loadCustomers()}else setCustMsg(o.error||'Could not redeem')};
  const field=(key:keyof SiteContent,value:string)=>setContent(c=>({...c,[key]:value}));
  const setFeelings=(feelings:Feeling[])=>setContent(c=>({...c,feelings}));
  const updateCategory=(ci:number,patch:Partial<Category>)=>setContent(c=>({...c,categories:c.categories.map((cat,i)=>i===ci?{...cat,...patch}:cat)}));
@@ -77,6 +86,7 @@ export default function ContentEditor(){
  const text=(k:keyof SiteContent,label:string,wide=false)=><label className={wide?'wide':''} key={k}>{label}<input value={val(k)} onChange={e=>field(k,e.target.value)}/></label>;
  const area=(k:keyof SiteContent,label:string)=><label className="wide" key={k}>{label}<textarea rows={2} value={val(k)} onChange={e=>field(k,e.target.value)}/></label>;
  const heroField=(k:'heroImage'|'accountHeroImage',label:string)=><div className="img-field"><span className="img-field-label">{label}</span><ImageControl wide image={val(k)} label="image" busy={uploading===k} onFile={f=>handleUpload(k,f,url=>field(k,url))} onClear={()=>field(k,'')}/></div>;
+ const numField=(k:keyof SiteContent,label:string)=><label key={k}>{label}<input type="number" min={1} value={(content[k] as number|undefined)??''} onChange={e=>setNum(k,e.target.value)}/></label>;
 
  return <main className="admin-shell"><aside className="admin-sidebar"><a className="admin-brand" href="/">SOUL LIFTING<br/><i>THERAPIES</i></a><nav>{NAV.map(([x,label])=><button className={section===x?'active':''} onClick={()=>setSection(x)} key={x}>{label}</button>)}</nav><a href="/services">View customer app ↗</a></aside><section className="admin-workspace"><header><div><p className="eyebrow">Emma’s admin</p><h1>{TITLE[section]}</h1></div><div className="admin-save"><span>{status}</span><button onClick={save}>Save &amp; publish</button></div></header>
 
@@ -101,5 +111,8 @@ export default function ContentEditor(){
  {section==='login'&&<div className="admin-card admin-fields">{text('loginEyebrow','Label')}{text('loginHeading','Heading')}{area('loginIntro','Intro text')}{text('loginCustomerTitle','Customer button title')}{area('loginCustomerBlurb','Customer button text')}{text('loginAdminTitle','Emma button title')}{area('loginAdminBlurb','Emma button text')}</div>}
 
  {section==='locations'&&<div className="admin-card admin-fields">{text('phone','Phone')}{text('email','Email')}{area('horncastle','Horncastle address')}{area('woodhall','Woodhall Spa address')}</div>}
+
+ {section==='loyalty'&&<><div className="admin-card admin-fields"><label className="wide toggle"><input type="checkbox" checked={content.loyaltyEnabled!==false} onChange={e=>setContent(c=>({...c,loyaltyEnabled:e.target.checked}))}/> Show the Soul Points programme to customers</label>{numField('loyaltyPoundsPerPoint','£ spent for 1 point (10 = every £10 earns a point)')}{numField('loyaltyRewardPoints','Points needed for a reward (40 = £400 spent)')}{text('loyaltyRewardText','The reward',true)}<p className="hint wide">These rules save with <b>Save &amp; publish</b>. Adding visits and redeeming rewards below happen instantly.</p></div>
+ <div className="admin-card"><h2>Customers</h2><p className="cust-msg">{custMsg}</p>{customers.length===0?<p className="muted">No customer accounts yet. When customers sign up on the app, they will appear here so you can log their visits.</p>:<div className="cust-list">{customers.map(c=>{const ready=c.balance>=(content.loyaltyRewardPoints??40);return <div className="cust-row" key={c.id}><div className="cust-id"><b>{c.name}</b><span>{c.email}</span></div><div className="cust-points"><strong>{c.balance}</strong> pts<small>£{(c.total_spent_pennies/100).toFixed(0)} lifetime</small></div><div className="cust-actions"><div className="visit-add"><span>£</span><input type="number" min={0} value={amounts[c.id]??'50'} onChange={e=>setAmounts(a=>({...a,[c.id]:e.target.value}))}/><button className="img-btn" onClick={()=>addVisit(c.id)}>Add visit</button></div><button className={ready?'img-btn':'img-btn ghost'} disabled={!ready} onClick={()=>redeem(c.id)}>{ready?'Redeem reward':'Reward not ready'}</button></div></div>})}</div>}</div></>}
  </section></main>;
 }

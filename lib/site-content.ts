@@ -37,6 +37,12 @@ export type SiteContent = {
   loginEyebrow?: string; loginHeading?: string; loginIntro?: string;
   loginCustomerTitle?: string; loginCustomerBlurb?: string;
   loginAdminTitle?: string; loginAdminBlurb?: string;
+
+  // Loyalty (Soul Points) rules
+  loyaltyEnabled?: boolean;
+  loyaltyPoundsPerPoint?: number; // £ spent per 1 point (default 10 → £10 = 1 point)
+  loyaltyRewardPoints?: number;   // points needed for a reward (default 40 → £400)
+  loyaltyRewardText?: string;     // what the reward is
 };
 
 export const defaultSiteContent: SiteContent = {
@@ -88,6 +94,11 @@ export const defaultSiteContent: SiteContent = {
   loginIntro: 'Choose how you would like to continue.',
   loginCustomerTitle: 'I’m a customer', loginCustomerBlurb: 'Appointments, progress and rewards',
   loginAdminTitle: 'I’m Emma', loginAdminBlurb: 'Manage treatments and business content',
+
+  loyaltyEnabled: true,
+  loyaltyPoundsPerPoint: 10,
+  loyaltyRewardPoints: 40,
+  loyaltyRewardText: 'Free 15-minute massage',
 };
 
 // Merge a stored (possibly partial) document over the defaults so every field is present.

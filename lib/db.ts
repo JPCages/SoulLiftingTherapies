@@ -37,3 +37,29 @@ export async function getCustomerById(id:number):Promise<Customer|null>{
   const {rows}=await pool().query('SELECT * FROM customers WHERE id=$1',[id]);
   return (rows[0] as Customer)??null;
 }
+
+// --- Loyalty points ledger (balance = sum of events; redemptions are negative) ---
+export type PointEvent={id:number;customer_id:number;points:number;reason:string;amount_pennies:number|null;created_at:string};
+async function pointsReady(){await customersReady();await pool().query('CREATE TABLE IF NOT EXISTS point_events (id SERIAL PRIMARY KEY, customer_id INTEGER NOT NULL REFERENCES customers(id) ON DELETE CASCADE, points INTEGER NOT NULL, reason TEXT NOT NULL, amount_pennies INTEGER, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())')}
+export async function recordPointEvent(customerId:number,points:number,reason:string,amountPennies:number|null=null){
+  await pointsReady();
+  await pool().query('INSERT INTO point_events(customer_id,points,reason,amount_pennies) VALUES($1,$2,$3,$4)',[customerId,points,reason,amountPennies]);
+}
+export async function getPointsBalance(customerId:number):Promise<number>{
+  await pointsReady();
+  const {rows}=await pool().query('SELECT COALESCE(SUM(points),0)::int AS balance FROM point_events WHERE customer_id=$1',[customerId]);
+  return rows[0]?.balance??0;
+}
+export async function getPointHistory(customerId:number):Promise<PointEvent[]>{
+  await pointsReady();
+  const {rows}=await pool().query('SELECT * FROM point_events WHERE customer_id=$1 ORDER BY created_at DESC LIMIT 50',[customerId]);
+  return rows as PointEvent[];
+}
+export type CustomerWithPoints=Customer&{balance:number;total_spent_pennies:number};
+export async function listCustomersWithPoints():Promise<CustomerWithPoints[]>{
+  await pointsReady();
+  const {rows}=await pool().query(`SELECT c.*, COALESCE(SUM(pe.points),0)::int AS balance, COALESCE(SUM(pe.amount_pennies),0)::int AS total_spent_pennies
+    FROM customers c LEFT JOIN point_events pe ON pe.customer_id=c.id
+    GROUP BY c.id ORDER BY c.created_at DESC`);
+  return rows as CustomerWithPoints[];
+}

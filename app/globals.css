@@ -513,3 +513,27 @@ footer {
 /* Login submit button must stand out on the teal page */
 .login form .primary { width:100%; background:var(--cream); color:var(--teal); margin-top:.5rem; text-align:center; }
 .login form .primary:disabled { opacity:.7; }
+
+/* ---- Customer points progress bar ---- */
+.points-bar { margin-top:10px; height:8px; border-radius:99px; background:rgba(255,255,255,.22); overflow:hidden; }
+.points-bar span { display:block; height:100%; background:var(--gold); border-radius:99px; transition:width .4s ease; }
+.points-bar.ready span { background:#e6c979; }
+.points p { margin:6px 0 0; font-size:.7rem; color:#dbe8e5; max-width:260px; }
+
+/* ---- Admin loyalty & customers ---- */
+.admin-card .toggle { display:flex!important; flex-direction:row!important; align-items:center; gap:10px; grid-column:1/-1; font-weight:700; color:#425a56; }
+.admin-card .toggle input { width:auto!important; min-height:0!important; }
+.hint { color:#6b7975; font-size:.78rem; line-height:1.5; }
+.muted { color:#7d8c88; }
+.cust-msg { min-height:1.1em; color:#07545e; font-weight:700; font-size:.8rem; margin:0 0 10px; }
+.cust-list { display:grid; gap:10px; }
+.cust-row { display:grid; grid-template-columns:1.4fr .8fr 1.7fr; gap:14px; align-items:center; padding:14px; border:1px solid #e1dbd0; border-radius:11px; background:#faf7f0; }
+.cust-id b { display:block; color:#173235; }
+.cust-id span { color:#7d8c88; font-size:.75rem; word-break:break-all; }
+.cust-points strong { font:400 1.6rem Georgia,serif; color:#07545e; }
+.cust-points small { display:block; color:#7d8c88; font-size:.7rem; }
+.cust-actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
+.visit-add { display:flex; align-items:center; gap:4px; }
+.visit-add span { color:#425a56; font-weight:700; }
+.visit-add input { width:74px!important; min-height:0!important; padding:8px!important; }
+@media(max-width:760px){ .cust-row { grid-template-columns:1fr; } .cust-actions { justify-content:flex-start; } }
