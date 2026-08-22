@@ -1,4 +1,4 @@
-export type Service={name:string;price:string;duration:string;description?:string;note?:string;image?:string}; export type Category={name:string;short:string;services:Service[];image?:string};
+export type Service={name:string;price:string;duration:string;description?:string;note?:string;image?:string}; export type Category={name:string;short:string;services:Service[];image?:string;banner?:string};
 const make=(list:string[][])=>list.map(([name,price,duration,description,note])=>({name,price,duration,description,note}));
 export const categories:Category[]=[
  {name:'Massage',short:'Unwind, restore and reset.',services:make([['Aromatherapy full body massage','£50','1 hour'],['Aromatherapy back massage','£40','30 minutes'],['Deep tissue full body massage','£50','1 hour'],['Deep tissue back massage','£40','30 minutes'],['90 minute deluxe full body massage','£70','1 hour 30 minutes'],['Back scrub & hot oil massage','£42','40 minutes'],['Scalp massage','£20','20 minutes'],['Hand & arm massage','£30','25 minutes'],['Reiki','£50','1 hour']])},

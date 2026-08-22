@@ -1,12 +1,15 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
-import {defaultSiteContent,type SiteContent} from '@/lib/site-content';
+import {defaultSiteContent,withDefaults,type SiteContent,type Feeling} from '@/lib/site-content';
 import type {Category,Service} from '@/lib/sandbox-data';
 
 const blankService:Service={name:'New treatment',price:'£0',duration:'30 minutes',description:'',note:''};
+type Section='overview'|'homepage'|'services'|'account'|'booking'|'login'|'locations';
+const NAV:[Section,string][]=[['overview','Dashboard'],['homepage','Homepage'],['services','Treatments'],['account','Customer app'],['booking','Booking'],['login','Sign-in page'],['locations','Business details']];
+const TITLE:Record<Section,string>={overview:'Dashboard',homepage:'Edit homepage',services:'Treatment catalogue',account:'Customer app',booking:'Booking page',login:'Sign-in page',locations:'Business details'};
 
 // Compress an image in the browser so uploads stay small and fast.
-function compress(file:File,maxDim=1200,quality=0.72):Promise<string>{
+function compress(file:File,maxDim=1400,quality=0.72):Promise<string>{
  return new Promise((resolve,reject)=>{
   const reader=new FileReader();
   reader.onerror=()=>reject(new Error('Could not read the file'));
@@ -28,10 +31,10 @@ function compress(file:File,maxDim=1200,quality=0.72):Promise<string>{
  });
 }
 
-function ImageControl({image,label,busy,onFile,onClear}:{image?:string;label:string;busy:boolean;onFile:(f:File|undefined)=>void;onClear:()=>void}){
+function ImageControl({image,label,busy,onFile,onClear,wide}:{image?:string;label:string;busy:boolean;onFile:(f:File|undefined)=>void;onClear:()=>void;wide?:boolean}){
  const input=useRef<HTMLInputElement>(null);
  return <div className="img-control">
-  <div className="img-thumb" style={image?{backgroundImage:`url('${image}')`}:undefined}>{!image&&<span>No image</span>}</div>
+  <div className={wide?'img-thumb wide':'img-thumb'} style={image?{backgroundImage:`url('${image}')`}:undefined}>{!image&&<span>No image</span>}</div>
   <div className="img-actions">
    <input ref={input} type="file" accept="image/*" hidden onChange={e=>{onFile(e.target.files?.[0]);e.target.value=''}}/>
    <button type="button" className="img-btn" disabled={busy} onClick={()=>input.current?.click()}>{busy?'Uploading…':image?`Change ${label}`:`Upload ${label}`}</button>
@@ -43,10 +46,11 @@ function ImageControl({image,label,busy,onFile,onClear}:{image?:string;label:str
 export default function ContentEditor(){
  const [content,setContent]=useState<SiteContent>(defaultSiteContent);
  const [status,setStatus]=useState('');
- const [section,setSection]=useState<'overview'|'content'|'services'|'locations'>('overview');
+ const [section,setSection]=useState<Section>('overview');
  const [uploading,setUploading]=useState('');
- useEffect(()=>{fetch('/api/content').then(r=>r.json()).then(setContent)},[]);
+ useEffect(()=>{fetch('/api/content').then(r=>r.json()).then(x=>setContent(withDefaults(x))).catch(()=>{})},[]);
  const field=(key:keyof SiteContent,value:string)=>setContent(c=>({...c,[key]:value}));
+ const setFeelings=(feelings:Feeling[])=>setContent(c=>({...c,feelings}));
  const updateCategory=(ci:number,patch:Partial<Category>)=>setContent(c=>({...c,categories:c.categories.map((cat,i)=>i===ci?{...cat,...patch}:cat)}));
  const updateService=(ci:number,si:number,patch:Partial<Service>)=>setContent(c=>({...c,categories:c.categories.map((cat,i)=>i!==ci?cat:{...cat,services:cat.services.map((s,j)=>j===si?{...s,...patch}:s)})}));
  const addCategory=()=>setContent(c=>({...c,categories:[...c.categories,{name:'New category',short:'Add a short introduction.',services:[]}]}));
@@ -55,7 +59,6 @@ export default function ContentEditor(){
  const removeService=(ci:number,si:number)=>confirm('Remove this treatment?')&&updateCategory(ci,{services:content.categories[ci].services.filter((_,i)=>i!==si)});
  const save=async()=>{setStatus('Saving…');const r=await fetch('/api/content',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(content)});setStatus(r.ok?'Changes published':'Could not save — please sign in again')};
 
- // Compress the chosen file, upload it, then hand the stored URL back via onDone.
  async function handleUpload(key:string,file:File|undefined,onDone:(url:string)=>void){
   if(!file)return;
   setStatus('');setUploading(key);
@@ -69,12 +72,34 @@ export default function ContentEditor(){
   finally{setUploading('')}
  }
 
- return <main className="admin-shell"><aside className="admin-sidebar"><a className="admin-brand" href="/">SOUL LIFTING<br/><i>THERAPIES</i></a><nav>{(['overview','content','services','locations'] as const).map(x=><button className={section===x?'active':''} onClick={()=>setSection(x)} key={x}>{x==='overview'?'Dashboard':x==='content'?'Homepage':x==='services'?'Treatments':'Business details'}</button>)}</nav><a href="/services">View customer app ↗</a></aside><section className="admin-workspace"><header><div><p className="eyebrow">Emma’s admin</p><h1>{section==='overview'?'Dashboard':section==='content'?'Edit homepage':section==='services'?'Treatment catalogue':'Business details'}</h1></div><div className="admin-save"><span>{status}</span><button onClick={save}>Save & publish</button></div></header>
- {section==='overview'&&<div className="admin-overview"><div className="admin-stat"><span>Published treatments</span><strong>{content.categories.reduce((n,c)=>n+c.services.length,0)}</strong></div><div className="admin-stat"><span>Categories</span><strong>{content.categories.length}</strong></div><div className="admin-stat"><span>Locations</span><strong>2</strong></div><article className="admin-card wide"><h2>What you can update here</h2><p>Change homepage wording, contact details, location information, categories, treatments, prices, durations, descriptions, important notes and treatment photos. Press <b>Save &amp; publish</b> when you are ready for customers to see the changes.</p></article></div>}
- {section==='content'&&<div className="admin-card admin-fields"><label>Business name<input value={content.businessName} onChange={e=>field('businessName',e.target.value)}/></label><label>Business descriptor<input value={content.descriptor} onChange={e=>field('descriptor',e.target.value)}/></label><label>Main headline<input value={content.heroTitle} onChange={e=>field('heroTitle',e.target.value)}/></label><label>Gold headline wording<input value={content.heroAccent} onChange={e=>field('heroAccent',e.target.value)}/></label><label className="wide">Homepage introduction<textarea rows={3} value={content.heroIntro} onChange={e=>field('heroIntro',e.target.value)}/></label><label className="wide">Announcement banner (leave blank to hide)<input value={content.notice} onChange={e=>field('notice',e.target.value)} placeholder="Example: Gift vouchers now available"/></label></div>}
- {section==='locations'&&<div className="admin-card admin-fields"><label>Phone<input value={content.phone} onChange={e=>field('phone',e.target.value)}/></label><label>Email<input value={content.email} onChange={e=>field('email',e.target.value)}/></label><label className="wide">Horncastle address<textarea rows={3} value={content.horncastle} onChange={e=>field('horncastle',e.target.value)}/></label><label className="wide">Woodhall Spa address<textarea rows={3} value={content.woodhall} onChange={e=>field('woodhall',e.target.value)}/></label></div>}
- {section==='services'&&<div className="service-manager"><button className="add-category" onClick={addCategory}>＋ Add category</button>{content.categories.map((cat,ci)=><article className="admin-card category-editor" key={ci}><div className="category-editor-head"><div><input className="category-name" value={cat.name} onChange={e=>updateCategory(ci,{name:e.target.value})}/><input className="category-intro-input" value={cat.short} onChange={e=>updateCategory(ci,{short:e.target.value})}/></div><button className="danger" onClick={()=>removeCategory(ci)}>Remove category</button></div>
+ // Plain render helpers (called as functions, not JSX components, to preserve input focus).
+ const val=(k:keyof SiteContent)=>(content[k] as string|undefined)??'';
+ const text=(k:keyof SiteContent,label:string,wide=false)=><label className={wide?'wide':''} key={k}>{label}<input value={val(k)} onChange={e=>field(k,e.target.value)}/></label>;
+ const area=(k:keyof SiteContent,label:string)=><label className="wide" key={k}>{label}<textarea rows={2} value={val(k)} onChange={e=>field(k,e.target.value)}/></label>;
+ const heroField=(k:'heroImage'|'accountHeroImage',label:string)=><div className="img-field"><span className="img-field-label">{label}</span><ImageControl wide image={val(k)} label="image" busy={uploading===k} onFile={f=>handleUpload(k,f,url=>field(k,url))} onClear={()=>field(k,'')}/></div>;
+
+ return <main className="admin-shell"><aside className="admin-sidebar"><a className="admin-brand" href="/">SOUL LIFTING<br/><i>THERAPIES</i></a><nav>{NAV.map(([x,label])=><button className={section===x?'active':''} onClick={()=>setSection(x)} key={x}>{label}</button>)}</nav><a href="/services">View customer app ↗</a></aside><section className="admin-workspace"><header><div><p className="eyebrow">Emma’s admin</p><h1>{TITLE[section]}</h1></div><div className="admin-save"><span>{status}</span><button onClick={save}>Save &amp; publish</button></div></header>
+
+ {section==='overview'&&<div className="admin-overview"><div className="admin-stat"><span>Published treatments</span><strong>{content.categories.reduce((n,c)=>n+c.services.length,0)}</strong></div><div className="admin-stat"><span>Categories</span><strong>{content.categories.length}</strong></div><div className="admin-stat"><span>Locations</span><strong>2</strong></div><article className="admin-card wide"><h2>Everything here is editable</h2><p>Use the menu on the left to edit the <b>homepage</b>, <b>treatments and photos</b>, the <b>customer app</b>, the <b>booking page</b>, the <b>sign-in page</b> and your <b>business details</b>. You can also add a banner image behind each treatment heading. Press <b>Save &amp; publish</b> when you are ready for customers to see the changes.</p></article></div>}
+
+ {section==='homepage'&&<><div className="admin-card admin-fields">{text('businessName','Business name')}{text('descriptor','Business descriptor')}{text('heroTitle','Main headline')}{text('heroAccent','Gold headline wording')}{area('heroIntro','Homepage introduction')}{area('notice','Announcement banner (leave blank to hide)')}</div>
+ <div className="admin-card">{heroField('heroImage','Homepage banner image (behind the headline)')}</div>
+ <div className="admin-card admin-fields">{text('homeMenuEyebrow','Treatment-menu label')}{text('homeMenuHeading','Treatment-menu heading')}{text('homePrivateEyebrow','Private-space label')}{text('homePrivateHeading','Private-space heading')}{area('homePrivateIntro','Private-space text')}{text('homeLoginCta','Log-in button text')}</div></>}
+
+ {section==='services'&&<div className="service-manager"><div className="admin-card admin-fields">{text('servicesTitle','Treatments page title')}{text('servicesHelpHeading','Help box heading')}{text('servicesHelpCta','Help box button (WhatsApp)')}</div><button className="add-category" onClick={addCategory}>＋ Add category</button>{content.categories.map((cat,ci)=><article className="admin-card category-editor" key={ci}><div className="category-editor-head"><div><input className="category-name" value={cat.name} onChange={e=>updateCategory(ci,{name:e.target.value})}/><input className="category-intro-input" value={cat.short} onChange={e=>updateCategory(ci,{short:e.target.value})}/></div><button className="danger" onClick={()=>removeCategory(ci)}>Remove category</button></div>
+ <div className="img-field"><span className="img-field-label">Banner image <em>(behind the “{cat.name}” heading)</em></span><ImageControl wide image={cat.banner} label="banner" busy={uploading===`ban-${ci}`} onFile={f=>handleUpload(`ban-${ci}`,f,url=>updateCategory(ci,{banner:url}))} onClear={()=>updateCategory(ci,{banner:undefined})}/></div>
  <div className="img-field"><span className="img-field-label">Category photo <em>(shown on treatment cards unless a treatment has its own)</em></span><ImageControl image={cat.image} label="photo" busy={uploading===`cat-${ci}`} onFile={f=>handleUpload(`cat-${ci}`,f,url=>updateCategory(ci,{image:url}))} onClear={()=>updateCategory(ci,{image:undefined})}/></div>
  <div className="treatment-editor-list">{cat.services.map((s,si)=><div className="treatment-editor" key={si}><div className="treatment-editor-title"><input value={s.name} onChange={e=>updateService(ci,si,{name:e.target.value})}/><button className="danger" onClick={()=>removeService(ci,si)}>Remove</button></div><div className="treatment-editor-meta"><label>Price<input value={s.price} onChange={e=>updateService(ci,si,{price:e.target.value})}/></label><label>Duration<input value={s.duration} onChange={e=>updateService(ci,si,{duration:e.target.value})}/></label></div><label>Description<textarea rows={2} value={s.description??''} onChange={e=>updateService(ci,si,{description:e.target.value})}/></label><label>Important note<textarea rows={2} value={s.note??''} onChange={e=>updateService(ci,si,{note:e.target.value})}/></label><div className="img-field"><span className="img-field-label">Treatment photo <em>(optional)</em></span><ImageControl image={s.image} label="photo" busy={uploading===`svc-${ci}-${si}`} onFile={f=>handleUpload(`svc-${ci}-${si}`,f,url=>updateService(ci,si,{image:url}))} onClear={()=>updateService(ci,si,{image:undefined})}/></div></div>)}</div><button className="add-treatment" onClick={()=>addService(ci)}>＋ Add treatment to {cat.name}</button></article>)}</div>}
+
+ {section==='account'&&<><div className="admin-card">{heroField('accountHeroImage','Customer app banner image (behind the greeting)')}</div>
+ <div className="admin-card admin-fields">{text('accountGreeting','Greeting line')}{text('accountName','Name shown (until customers log in)')}{area('accountSubtitle','Subtitle')}{text('feelingHeading','“How are you feeling” heading',true)}</div>
+ <div className="admin-card"><h2>Feeling buttons</h2><div className="feelings-editor">{(content.feelings??[]).map((f,i)=><div className="feeling-row" key={i}><input className="feeling-icon" value={f.icon} onChange={e=>setFeelings((content.feelings??[]).map((x,j)=>j===i?{...x,icon:e.target.value}:x))} aria-label="Icon"/><input value={f.label} onChange={e=>setFeelings((content.feelings??[]).map((x,j)=>j===i?{...x,label:e.target.value}:x))} aria-label="Label"/><button className="danger" onClick={()=>setFeelings((content.feelings??[]).filter((_,j)=>j!==i))}>Remove</button></div>)}<button className="add-treatment" onClick={()=>setFeelings([...(content.feelings??[]),{icon:'✦',label:'New'}])}>＋ Add feeling</button></div></div>
+ <div className="admin-card admin-fields">{text('appointmentLabel','Appointment label')}{text('appointmentHeading','Appointment heading')}{text('appointmentEmpty','Appointment empty state')}{text('appointmentCta','Appointment button')}{area('appointmentHint','Appointment hint')}{text('wellbeingLabel','Wellbeing label')}{text('wellbeingHint','Wellbeing hint')}{text('pointsLabel','Soul Points label')}{area('pointsIntro','Soul Points text')}{text('journeyHeading','Journey heading')}{area('journeyIntro','Journey text')}</div></>}
+
+ {section==='booking'&&<div className="admin-card admin-fields">{text('bookingEyebrow','Booking label')}{text('bookingHeading','Booking heading')}{area('bookingIntro','Booking introduction')}{area('bookingNote','Deposit / Fresha note')}{text('bookingSuccessHeading','Confirmation heading')}{area('bookingSuccessBody','Confirmation text')}</div>}
+
+ {section==='login'&&<div className="admin-card admin-fields">{text('loginEyebrow','Label')}{text('loginHeading','Heading')}{area('loginIntro','Intro text')}{text('loginCustomerTitle','Customer button title')}{area('loginCustomerBlurb','Customer button text')}{text('loginAdminTitle','Emma button title')}{area('loginAdminBlurb','Emma button text')}</div>}
+
+ {section==='locations'&&<div className="admin-card admin-fields">{text('phone','Phone')}{text('email','Email')}{area('horncastle','Horncastle address')}{area('woodhall','Woodhall Spa address')}</div>}
  </section></main>;
 }
