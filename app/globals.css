@@ -537,3 +537,32 @@ footer {
 .visit-add span { color:#425a56; font-weight:700; }
 .visit-add input { width:74px!important; min-height:0!important; padding:8px!important; }
 @media(max-width:760px){ .cust-row { grid-template-columns:1fr; } .cust-actions { justify-content:flex-start; } }
+
+/* ---- Treatment cards: button reset + short description ---- */
+button.luxury-treatment-card { width:100%; padding:0; font:inherit; text-align:left; cursor:pointer; }
+.card-desc { font-size:.72rem; color:#65736f; line-height:1.35; margin:-2px 0 8px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+
+/* ---- Banner heading legibility (lighter overlay, so text needs a shadow) ---- */
+.catalogue-intro.has-banner h2, .catalogue-intro.has-banner p { text-shadow:0 1px 8px rgba(0,0,0,.6); }
+
+/* ---- Treatment detail sheet ---- */
+.treatment-detail { position:fixed; inset:0; z-index:50; background:rgba(6,28,30,.55); display:flex; align-items:flex-end; justify-content:center; backdrop-filter:blur(2px); }
+.detail-sheet { width:100%; max-width:440px; max-height:92vh; overflow-y:auto; background:#fffdf8; border-radius:20px 20px 0 0; position:relative; box-shadow:0 -10px 40px rgba(0,0,0,.3); }
+@media(min-width:721px){ .treatment-detail { align-items:center; } .detail-sheet { border-radius:20px; } }
+.detail-close { position:absolute; top:12px; right:12px; z-index:2; width:36px; height:36px; border:0; border-radius:50%; background:rgba(255,255,255,.92); color:#173235; font-size:1.4rem; line-height:1; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,.2); }
+.detail-photo { height:210px; background-size:cover; background-repeat:no-repeat; }
+.detail-body { padding:20px 20px 26px; }
+.detail-cat { margin:0; color:#b89a62; font-size:.7rem; letter-spacing:.12em; text-transform:uppercase; font-weight:700; }
+.detail-body h2 { margin:4px 0 10px; font:400 1.6rem Georgia,serif; color:#142b2e; }
+.detail-meta { display:flex; align-items:center; gap:14px; margin-bottom:14px; }
+.detail-meta span { color:#62706d; font-size:.85rem; }
+.detail-meta i { font-style:normal; }
+.detail-meta .price { font:400 1.3rem Georgia,serif; color:#a17d3d; }
+.detail-desc { color:#3f4e4b; line-height:1.6; margin:0 0 12px; }
+.detail-note { background:#f4eee2; border:1px solid #e3d8c4; border-radius:10px; padding:10px 12px; font-size:.82rem; color:#6b5a35; margin:0 0 16px; }
+.detail-body .primary { width:100%; text-align:center; }
+
+/* ---- Admin: photo position slider ---- */
+.img-pos { display:flex; align-items:center; gap:10px; margin-top:10px; width:100%; }
+.img-pos label { font-size:.68rem; font-weight:700; color:#7d8c88; white-space:nowrap; }
+.img-pos input[type=range] { flex:1; accent-color:#07545e; }
