@@ -1,10 +1,23 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+// NEXT_PUBLIC_SITE_URL is set by hand in Railway, so it may arrive without a
+// scheme or empty. A bad value must never break the build: fall back to no
+// metadataBase, which only affects how absolute social-preview URLs are built.
+function siteUrl(): URL | undefined {
+  const raw = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (!raw) return undefined;
+  try {
+    return new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`);
+  } catch {
+    return undefined;
+  }
+}
+
+const base = siteUrl();
 
 export const metadata: Metadata = {
-  ...(siteUrl ? { metadataBase: new URL(siteUrl) } : {}),
+  ...(base ? { metadataBase: base } : {}),
   title: "Soul Lifting Therapies | Massage & Facial Specialist, Horncastle & Woodhall Spa",
   description:
     "Massage, facials, advanced skin treatments and Lycon waxing with Emma at Soul Lifting Therapies, Horncastle and Woodhall Spa, Lincolnshire.",
