@@ -29,9 +29,17 @@ export type SiteContent = {
   pointsLabel?: string; pointsIntro?: string;
   journeyHeading?: string; journeyIntro?: string;
 
-  // Booking page copy
+  // Booking page copy (legacy sandbox fields, no longer rendered)
   bookingEyebrow?: string; bookingHeading?: string; bookingIntro?: string; bookingNote?: string;
   bookingSuccessHeading?: string; bookingSuccessBody?: string;
+
+  // Booking request copy. New keys so saved sandbox wording cannot override them.
+  bookingRequestEyebrow?: string; bookingRequestHeading?: string; bookingRequestIntro?: string;
+  bookingRequestNote?: string; bookingResponseTime?: string;
+  bookingRequestSuccessHeading?: string; bookingRequestSuccessBody?: string;
+
+  // Customer-app features that are not built yet; off until they are.
+  wellbeingEnabled?: boolean; journeyEnabled?: boolean;
 
   // Login page copy
   loginEyebrow?: string; loginHeading?: string; loginIntro?: string;
@@ -89,6 +97,17 @@ export const defaultSiteContent: SiteContent = {
   bookingNote: 'When live, Emma checks the request against Fresha first, then sends the £10 deposit link.',
   bookingSuccessHeading: 'Test request received.',
   bookingSuccessBody: 'No booking has been made, no email was sent and no deposit was requested.',
+
+  bookingRequestEyebrow: 'Request a treatment',
+  bookingRequestHeading: 'Tell Emma when suits you.',
+  bookingRequestIntro: 'Choose your treatment and the times that work for you. Emma checks her diary and comes back to confirm — sending this does not book the appointment itself.',
+  bookingRequestNote: 'Emma confirms by text or email, usually within a day. A £10 deposit secures the appointment once she has confirmed the time.',
+  bookingResponseTime: 'within a day',
+  bookingRequestSuccessHeading: 'Request sent.',
+  bookingRequestSuccessBody: 'Emma will check her diary and come back to you to confirm. Nothing is held until she does.',
+
+  wellbeingEnabled: false,
+  journeyEnabled: false,
 
   loginEyebrow: 'Your private space', loginHeading: 'Welcome back.',
   loginIntro: 'Choose how you would like to continue.',

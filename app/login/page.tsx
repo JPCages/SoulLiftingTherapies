@@ -1,6 +1,7 @@
 'use client';
 import {FormEvent,useEffect,useState} from 'react';
 import {defaultSiteContent,type SiteContent} from '@/lib/site-content';
+import Image from 'next/image';
 
 export default function Login(){
   const [content,setContent]=useState<SiteContent>(defaultSiteContent);
@@ -22,6 +23,7 @@ export default function Login(){
   }
 
   return <main className="login"><a className="back" href="/">← {content.businessName}</a><section>
+    <div className="brand-lockup"><span className="brand-mark lg"><Image src="/brand/logo-horizontal.webp" alt={content.businessName} width={1200} height={498} priority/></span></div>
     <p className="eyebrow">{content.loginEyebrow}</p>
     <h1>{mode==='register'?'Create your account.':content.loginHeading}</h1>
     <p>{mode==='register'?'Set up your private space for appointments, progress and rewards.':content.loginIntro}</p>

@@ -1,6 +1,6 @@
 import {NextResponse} from 'next/server';
 import {CUSTOMER_COOKIE,createCustomerToken,hashPassword} from '@/lib/customer-auth';
-import {createCustomer,getCustomerByEmail} from '@/lib/db';
+import {createCustomer,getCustomerByEmail,linkClientByEmail} from '@/lib/db';
 
 export async function POST(request:Request){
   if(!process.env.DATABASE_URL)return NextResponse.json({error:'Customer accounts are not available yet.'},{status:503});
@@ -12,6 +12,8 @@ export async function POST(request:Request){
   if(process.env.ADMIN_EMAIL&&e===process.env.ADMIN_EMAIL.toLowerCase())return NextResponse.json({error:'That email is reserved. Please use another.'},{status:409});
   if(await getCustomerByEmail(e))return NextResponse.json({error:'An account with that email already exists. Please sign in.'},{status:409});
   const customer=await createCustomer(n,e,hashPassword(password));
+  // If Emma already had this person on her client list, adopt that record.
+  await linkClientByEmail(e,customer.id).catch(()=>false);
   const res=NextResponse.json({role:'customer',name:customer.name});
   res.cookies.set(CUSTOMER_COOKIE,createCustomerToken(customer.id),{httpOnly:true,secure:process.env.NODE_ENV==='production',sameSite:'lax',path:'/',maxAge:60*60*24*30});
   return res;

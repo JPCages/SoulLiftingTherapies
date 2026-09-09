@@ -1,12 +1,17 @@
 :root {
-  --teal: #0b525b;
+  /* Brand palette sampled from Emma's logo (teal ground #006f66, champagne gold). */
+  --teal: #006f66;
+  --teal-deep: #00544d;
   --cream: #fcf1e8;
-  --gold: #b89a62;
+  --gold: #b89a62;          /* decorative gold, unchanged */
+  --gold-leaf: #cbc29f;     /* mid tone of the logo lettering */
+  --gold-highlight: #eee4bf;/* brightest tone of the logo lettering */
+  --gold-ink: #856327;      /* text-safe gold: 5.0:1 on cream */
   --ink: #263238;
 }
 
 /* Approved luxury mobile treatment catalogue */
-.treatments-app { --app-cream:#f9f4e9; --app-card:#fffdf8; --app-teal:#08525b; --app-gold:#b89a62; min-height:100vh; background:var(--app-cream); color:#142b2e; padding-bottom:82px; }
+.treatments-app { --app-cream:#f9f4e9; --app-card:#fffdf8; --app-teal:#006f66; --app-gold:#b89a62; min-height:100vh; background:var(--app-cream); color:#142b2e; padding-bottom:82px; }
 .app-topbar { height:78px; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; padding:13px 17px 7px; border-bottom:1px solid rgba(184,154,98,.2); position:sticky; top:0; z-index:10; background:rgba(249,244,233,.97); backdrop-filter:blur(14px); }
 .app-topbar h1 { font:400 1.3rem Georgia,serif; margin:0; }
 .mini-brand { display:flex; align-items:center; gap:6px; font-size:.56rem; line-height:1.05; letter-spacing:.08em; }
@@ -15,7 +20,7 @@
 .treatment-tabs { display:flex; gap:8px; overflow-x:auto; padding:14px 17px 12px; scrollbar-width:none; position:sticky; top:78px; z-index:9; background:var(--app-cream); }
 .treatment-tabs::-webkit-scrollbar { display:none; }
 .treatment-tabs button { flex:0 0 auto; border:1px solid #ded5c8; background:#fbf8f1; border-radius:999px; padding:9px 16px; color:#172b2e; font:500 .72rem/1 Arial,sans-serif; }
-.treatment-tabs button.active { background:var(--app-teal); border-color:var(--app-teal); color:white; box-shadow:0 3px 10px rgba(8,82,91,.18); }
+.treatment-tabs button.active { background:var(--app-teal); border-color:var(--app-teal); color:white; box-shadow:0 3px 10px rgba(0,111,102,.18); }
 .catalogue-list { max-width:620px; margin:auto; padding:0 17px 23px; display:grid; gap:10px; }
 .catalogue-intro { padding:7px 2px 4px; }
 .catalogue-intro h2 { font:400 1.04rem Georgia,serif; margin:0 0 3px; }
@@ -26,7 +31,7 @@
 .treatment-copy strong { font:400 1.02rem/1.16 Georgia,serif; margin-bottom:8px; text-transform:capitalize; }
 .duration { font-size:.7rem; color:#62706d; }
 .duration i { font-style:normal; color:#314749; }
-.price { font:400 1.1rem Georgia,serif; color:#a17d3d; margin-top:auto; }
+.price { font:400 1.1rem Georgia,serif; color:var(--gold-ink); margin-top:auto; }
 .chevron { display:grid; place-items:center; color:#607779; font-size:1.45rem; padding-right:7px; }
 .catalogue-help { margin:0 17px 20px; padding:18px; text-align:center; background:#f4eee2; border:1px solid #dfd4c3; border-radius:12px; }
 .catalogue-help p { font:400 1rem Georgia,serif; margin:0 0 10px; }
@@ -103,6 +108,8 @@ h3 {
   margin: 0.7rem 0 1.2rem;
   color: var(--teal);
 }
+/* The sign-in page sits on the teal ground, so the teal heading was invisible. */
+.login h1 { color: var(--cream); }
 .hero h1 em {
   color: var(--gold);
 }
@@ -326,11 +333,11 @@ footer {
 .admin-workspace h1 { margin:4px 0 0; color:#15383c; font:400 clamp(2.2rem,4vw,3.8rem)/1 Georgia,serif; }
 .admin-save { display:flex; align-items:center; gap:12px; }
 .admin-save span { color:#4d6864; font-size:.75rem; }
-.admin-save button,.add-category,.add-treatment { border:0; border-radius:999px; padding:12px 18px; color:white; background:#07545e; font-weight:700; cursor:pointer; }
+.admin-save button,.add-category,.add-treatment { border:0; border-radius:999px; padding:12px 18px; color:white; background:#006f66; font-weight:700; cursor:pointer; }
 .admin-overview { display:grid; grid-template-columns:repeat(3,1fr); gap:15px; }
 .admin-stat,.admin-card { padding:22px; background:#fffdf8; border:1px solid #dcd5c8; border-radius:15px; box-shadow:0 6px 20px rgba(35,56,52,.05); }
 .admin-stat span { display:block; color:#63736f; font-size:.74rem; }
-.admin-stat strong { display:block; margin-top:8px; color:#07545e; font:400 2.5rem Georgia,serif; }
+.admin-stat strong { display:block; margin-top:8px; color:#006f66; font:400 2.5rem Georgia,serif; }
 .admin-card.wide { grid-column:1/-1; }
 .admin-card h2 { margin:0 0 12px; font:400 1.65rem Georgia,serif; }
 .admin-card p { color:#5d6d69; line-height:1.55; }
@@ -350,7 +357,7 @@ footer {
 .treatment-editor-title input { font:400 1.1rem Georgia,serif; }
 .treatment-editor-meta { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:10px 0; }
 .treatment-editor>label { margin-top:10px; }
-.add-treatment { background:#e5eee9; color:#07545e; }
+.add-treatment { background:#e5eee9; color:#006f66; }
 @media(max-width:760px){.admin-shell{grid-template-columns:1fr}.admin-sidebar{min-height:auto;position:static;padding:18px}.admin-sidebar nav{grid-template-columns:repeat(4,1fr);overflow:auto;margin:20px 0 0}.admin-sidebar button{text-align:center;padding:10px 6px;font-size:.65rem}.admin-sidebar>a:last-child{display:none}.admin-workspace{padding:20px 14px}.admin-workspace>header{align-items:flex-start;flex-direction:column}.admin-save{width:100%;justify-content:space-between}.admin-overview,.admin-fields{grid-template-columns:1fr}.admin-fields .wide{grid-column:auto}.category-editor-head,.treatment-editor-title{flex-direction:column}.treatment-editor-meta{grid-template-columns:1fr}.danger{align-self:flex-start}}
 
 /* Admin dashboard */
@@ -405,7 +412,7 @@ footer {
 .score { display:flex; flex-direction:column; align-items:center; text-align:center; }
 .score strong { margin:auto; font:400 2.6rem Georgia,serif; color:var(--teal); }
 .score span { font-size:.62rem; color:#65726f; }
-.points { margin:0 12px 12px; padding:20px; display:flex; justify-content:space-between; align-items:center; border-radius:14px; color:#fffdf8; background:linear-gradient(135deg,#07555f,#073d45); box-shadow:0 8px 20px rgba(8,82,91,.18); }
+.points { margin:0 12px 12px; padding:20px; display:flex; justify-content:space-between; align-items:center; border-radius:14px; color:#fffdf8; background:linear-gradient(135deg,#07555f,#073d45); box-shadow:0 8px 20px rgba(0,111,102,.18); }
 .points strong { display:block; margin:4px 0; font:400 2.4rem Georgia,serif; }
 .points small { font:400 .7rem Arial,sans-serif; }
 .points p:last-child { max-width:240px; margin:4px 0 0; font-size:.68rem; color:#dbe8e5; }
@@ -471,9 +478,9 @@ footer {
 .img-thumb { width:96px; height:72px; flex:0 0 auto; border:1px solid #ccd5cf; border-radius:10px; background:#eef2ef center/cover no-repeat; display:flex; align-items:center; justify-content:center; overflow:hidden; }
 .img-thumb span { color:#93a09b; font-size:.62rem; }
 .img-actions { display:flex; gap:8px; flex-wrap:wrap; }
-.img-btn { border:0; border-radius:999px; padding:9px 15px; background:#07545e; color:#fff; font-weight:700; font-size:.75rem; cursor:pointer; }
+.img-btn { border:0; border-radius:999px; padding:9px 15px; background:#006f66; color:#fff; font-weight:700; font-size:.75rem; cursor:pointer; }
 .img-btn:disabled { opacity:.6; cursor:default; }
-.img-btn.ghost { background:#e5eee9; color:#07545e; }
+.img-btn.ghost { background:#e5eee9; color:#006f66; }
 
 /* ---- Customer progress photos ---- */
 .journey-photos { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:10px 0 4px; }
@@ -525,12 +532,12 @@ footer {
 .admin-card .toggle input { width:auto!important; min-height:0!important; }
 .hint { color:#6b7975; font-size:.78rem; line-height:1.5; }
 .muted { color:#7d8c88; }
-.cust-msg { min-height:1.1em; color:#07545e; font-weight:700; font-size:.8rem; margin:0 0 10px; }
+.cust-msg { min-height:1.1em; color:#006f66; font-weight:700; font-size:.8rem; margin:0 0 10px; }
 .cust-list { display:grid; gap:10px; }
 .cust-row { display:grid; grid-template-columns:1.4fr .8fr 1.7fr; gap:14px; align-items:center; padding:14px; border:1px solid #e1dbd0; border-radius:11px; background:#faf7f0; }
 .cust-id b { display:block; color:#173235; }
 .cust-id span { color:#7d8c88; font-size:.75rem; word-break:break-all; }
-.cust-points strong { font:400 1.6rem Georgia,serif; color:#07545e; }
+.cust-points strong { font:400 1.6rem Georgia,serif; color:#006f66; }
 .cust-points small { display:block; color:#7d8c88; font-size:.7rem; }
 .cust-actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
 .visit-add { display:flex; align-items:center; gap:4px; }
@@ -557,7 +564,7 @@ button.luxury-treatment-card { width:100%; padding:0; font:inherit; text-align:l
 .detail-meta { display:flex; align-items:center; gap:14px; margin-bottom:14px; }
 .detail-meta span { color:#62706d; font-size:.85rem; }
 .detail-meta i { font-style:normal; }
-.detail-meta .price { font:400 1.3rem Georgia,serif; color:#a17d3d; }
+.detail-meta .price { font:400 1.3rem Georgia,serif; color:var(--gold-ink); }
 .detail-desc { color:#3f4e4b; line-height:1.6; margin:0 0 12px; }
 .detail-note { background:#f4eee2; border:1px solid #e3d8c4; border-radius:10px; padding:10px 12px; font-size:.82rem; color:#6b5a35; margin:0 0 16px; }
 .detail-body .primary { width:100%; text-align:center; }
@@ -565,4 +572,64 @@ button.luxury-treatment-card { width:100%; padding:0; font:inherit; text-align:l
 /* ---- Admin: photo position slider ---- */
 .img-pos { display:flex; align-items:center; gap:10px; margin-top:10px; width:100%; }
 .img-pos label { font-size:.68rem; font-weight:700; color:#7d8c88; white-space:nowrap; }
-.img-pos input[type=range] { flex:1; accent-color:#07545e; }
+.img-pos input[type=range] { flex:1; accent-color:#006f66; }
+
+
+/* --- Brand marks (Emma's supplied logo; artwork sits on its own teal ground) --- */
+.brand-mark { display:inline-flex; align-items:center; background:var(--teal); border-radius:10px; padding:6px 10px; line-height:0; }
+.brand-mark img { height:34px; width:auto; display:block; }
+.brand-mark.lg img { height:64px; }
+.brand-mark.emblem { border-radius:50%; padding:0; overflow:hidden; }
+.brand-mark.emblem img { height:72px; width:72px; border-radius:50%; }
+.brand-lockup { display:flex; justify-content:center; padding:6px 0 14px; }
+/* On pages already using the teal ground the logo needs no tile behind it. */
+.login .brand-mark { background:transparent; padding:0; }
+
+/* --- Admin: client list --- */
+.client-search { margin:0 0 12px; }
+.client-search input { width:100%; max-width:360px; padding:9px 12px; border:1px solid #ded5c8; border-radius:8px; font-size:.85rem; }
+.linked-tag { font-size:.72rem; color:var(--teal); background:rgba(0,111,102,.09); border-radius:999px; padding:5px 10px; }
+.import-report { margin:10px 0 0; padding-left:18px; font-size:.75rem; color:#6b5f45; max-height:180px; overflow:auto; }
+.import-report li { margin-bottom:3px; }
+.cust-actions select { padding:8px 10px; border:1px solid #ded5c8; border-radius:8px; font-size:.75rem; max-width:230px; }
+
+/* --- Small lotus mark (tight crop of the logo, legible at icon sizes) --- */
+.lotus-mark { display:inline-flex; border-radius:8px; overflow:hidden; line-height:0; }
+.lotus-mark img { width:30px; height:30px; display:block; }
+.account-grid.solo { grid-template-columns:1fr; }
+
+/* --- Booking request form --- */
+.booking fieldset > label { display:block; font-size:.78rem; font-weight:700; color:#425a56; }
+.booking textarea { display:block; width:100%; margin-top:.4rem; padding:.7rem .8rem; border:1px solid #cdc2b2; border-radius:10px; background:#fff; color:#173235; font:inherit; font-weight:400; line-height:1.5; resize:vertical; }
+.booking .grid .wide { grid-column:1 / -1; }
+.booking .grid input, .booking select, .booking textarea { max-width:100%; }
+@media (max-width:430px) { .booking .grid { grid-template-columns:1fr; } }
+.time-picks { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+.pick { border:1px solid #ded5c8; background:#fbf8f1; border-radius:999px; padding:9px 15px; font:500 .8rem/1 inherit; color:#172b2e; cursor:pointer; }
+.pick.selected { background:var(--teal); border-color:var(--teal); color:#fff; }
+.booking .optional { color:#7d8c88; font-weight:400; }
+.booking-contact { font-size:.85rem; color:#5d6d69; margin-top:14px; }
+.booking-contact a { color:var(--teal); font-weight:700; }
+.booking select optgroup { font-style:normal; font-weight:700; }
+.hp { position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden; }
+.sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
+
+/* --- Admin: booking request inbox --- */
+.req-list { display:flex; flex-direction:column; gap:12px; }
+.req { border:1px solid var(--line, #e5ded2); border-radius:12px; padding:16px; background:#fffdf8; display:grid; gap:10px; }
+.req.is-new { border-color:var(--teal); box-shadow:0 2px 10px rgba(0,111,102,.10); }
+.req-head { display:flex; flex-wrap:wrap; gap:10px; align-items:baseline; justify-content:space-between; }
+.req-head b { font-size:1.02rem; }
+.req-when { font-size:.74rem; color:#7d8c88; font-variant-numeric:tabular-nums; }
+.req-body { font-size:.88rem; color:#4b5a56; display:grid; gap:5px; }
+.req-body span b { color:#17302c; font-weight:600; }
+.req-actions { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.status-tag { font-size:.66rem; letter-spacing:.09em; text-transform:uppercase; font-weight:700; padding:4px 9px; border-radius:999px; }
+.status-new { color:#0d5f57; background:#dcece9; }
+.status-offered { color:#3f5f86; background:#e0e8f2; }
+.status-confirmed { color:#fff; background:var(--teal); }
+.status-declined { color:#7a5647; background:#f1e3dc; }
+.req-filter { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+.req-filter button { border:1px solid #ded5c8; background:#fbf8f1; border-radius:999px; padding:7px 14px; font-size:.76rem; cursor:pointer; }
+.req-filter button.active { background:var(--teal); border-color:var(--teal); color:#fff; }
+.nav-badge { display:inline-block; margin-left:7px; min-width:20px; padding:1px 6px; border-radius:999px; background:var(--gold-highlight,#eee4bf); color:#4a3a12; font-size:.66rem; font-weight:700; text-align:center; }
