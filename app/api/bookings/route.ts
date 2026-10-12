@@ -1,25 +1,14 @@
 import {createBookingRequest} from '@/lib/db';
 import {currentCustomerId} from '@/lib/customer-auth';
+import {clientIp,createRateLimiter} from '@/lib/rate-limit';
 
-// Simple in-process throttle. Not a substitute for a real rate limiter, but it stops
-// one browser hammering the form. Resets when the server restarts.
-const recent=new Map<string,number[]>();
-function sentTooMany(key:string,limit=8,windowMs=60*60*1000){
-  const now=Date.now();
-  const hits=(recent.get(key)??[]).filter(t=>now-t<windowMs);
-  recent.set(key,hits);
-  return hits.length>=limit;
-}
-function recordSend(key:string){
-  const hits=recent.get(key)??[];
-  hits.push(Date.now()); recent.set(key,hits);
-  if(recent.size>5000)recent.clear();
-}
+// Per-IP throttle on successful sends: 8 per hour. See lib/rate-limit.ts.
+const bookingLimiter=createRateLimiter({limit:8,windowMs:60*60*1000});
 const clean=(v:unknown,max:number)=>typeof v==='string'?v.trim().slice(0,max):'';
 
 export async function POST(request:Request){
   if(!process.env.DATABASE_URL)return Response.json({error:'Requests are not available yet. Please call or message Emma.'},{status:503});
-  const ip=request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()||'unknown';
+  const ip=clientIp(request);
 
   let body:Record<string,unknown>;
   try{body=await request.json() as Record<string,unknown>}catch{return Response.json({error:'Invalid request'},{status:400})}
@@ -38,10 +27,10 @@ export async function POST(request:Request){
   if(!preferences)return Response.json({error:'Please tell Emma which days or times suit you.'},{status:400});
 
   // Only successful sends count towards the limit, so a mistyped number costs nothing.
-  if(sentTooMany(ip))return Response.json({error:'That is several requests already. Please call or text Emma instead.'},{status:429});
+  if(bookingLimiter.isLimited(ip))return Response.json({error:'That is several requests already. Please call or text Emma instead.'},{status:429});
 
   const customerId=await currentCustomerId().catch(()=>null);
   await createBookingRequest({name,email:email||null,phone,treatment,location,preferences,notes:notes||null,customerId});
-  recordSend(ip);
+  bookingLimiter.record(ip);
   return Response.json({ok:true});
 }
