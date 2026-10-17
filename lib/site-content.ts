@@ -41,6 +41,18 @@ export type SiteContent = {
   // Customer-app features that are not built yet; off until they are.
   wellbeingEnabled?: boolean; journeyEnabled?: boolean;
 
+  // Homepage layout (2026 redesign). Every field is optional and falls back to a
+  // sensible default or hides itself, so existing saved content keeps working.
+  homeMenuSub?: string;                 // blank -> a sentence counted from the live menu
+  homeHeroCaptionTitle?: string; homeHeroCaptionText?: string;   // blank -> no caption on the photo
+  homeTrustYears?: string; homeTrustPlaces?: string;             // blank -> that item is hidden
+  homeHowEyebrow?: string; homeHowHeading?: string; homeHowIntro?: string;
+  homeStep1Title?: string; homeStep1Text?: string;
+  homeStep2Title?: string; homeStep2Text?: string;
+  homeStep3Title?: string; homeStep3Text?: string;
+  homeFindHeading?: string; homeFindIntro?: string;
+  horncastleHours?: string; woodhallHours?: string;              // blank -> no hours shown
+
   // Login page copy
   loginEyebrow?: string; loginHeading?: string; loginIntro?: string;
   loginCustomerTitle?: string; loginCustomerBlurb?: string;
@@ -108,6 +120,20 @@ export const defaultSiteContent: SiteContent = {
 
   wellbeingEnabled: false,
   journeyEnabled: false,
+
+  homeTrustYears: '10+ years in practice',
+  homeTrustPlaces: 'Two locations across Lincolnshire',
+  homeHowEyebrow: 'Booking',
+  homeHowHeading: 'How booking works',
+  homeHowIntro: 'Emma keeps her diary in Fresha, so nothing is confirmed by a machine. You ask, she checks, she comes back to you.',
+  homeStep1Title: 'Tell her when suits',
+  homeStep1Text: 'Pick a treatment and the days or times that work for you. It takes about a minute.',
+  homeStep2Title: 'Emma checks her diary',
+  homeStep2Text: 'She confirms by text or email, usually within a day. Nothing is held until she does.',
+  homeStep3Title: '£10 secures it',
+  homeStep3Text: 'A deposit confirms the appointment and comes off the price on the day.',
+  homeFindHeading: 'Where to find Emma',
+  homeFindIntro: 'Two rooms, both easy to park at.',
 
   loginEyebrow: 'Your private space', loginHeading: 'Welcome back.',
   loginIntro: 'Choose how you would like to continue.',

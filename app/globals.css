@@ -633,3 +633,119 @@ button.luxury-treatment-card { width:100%; padding:0; font:inherit; text-align:l
 .req-filter button { border:1px solid #ded5c8; background:#fbf8f1; border-radius:999px; padding:7px 14px; font-size:.76rem; cursor:pointer; }
 .req-filter button.active { background:var(--teal); border-color:var(--teal); color:#fff; }
 .nav-badge { display:inline-block; margin-left:7px; min-width:20px; padding:1px 6px; border-radius:999px; background:var(--gold-highlight,#eee4bf); color:#4a3a12; font-size:.66rem; font-weight:700; text-align:center; }
+
+/* ===================================================================
+   Homepage layout — 2026 redesign.
+   New class names only, so every other page keeps the styles it had.
+   =================================================================== */
+.site{background:var(--cream, #f9f4e9)}
+.home-in{max-width:1180px;margin:0 auto;padding-inline:22px}
+
+/* buttons shared by the header and the page */
+.site-btn{display:inline-block;border-radius:999px;padding:11px 22px;font:700 .88rem/1 Arial,Helvetica,sans-serif;white-space:nowrap;text-align:center}
+.site-btn.solid{background:var(--teal);color:#fff}
+.site-btn.solid:hover{background:var(--teal-deep)}
+.site-btn.line{border:1.5px solid var(--teal);color:var(--teal)}
+.site-btn.line:hover{background:rgba(0,111,102,.06)}
+.site-btn.pale{background:#fffdf8;color:var(--teal-deep)}
+.site-btn.big{padding:15px 28px;font-size:.95rem}
+
+/* header */
+.sitebar{position:sticky;top:0;z-index:30;background:#fffdf8;border-bottom:1px solid #e4dac6}
+.sitebar-in{max-width:1180px;margin:0 auto;padding:12px 22px;display:flex;align-items:center;gap:20px}
+.sitemark{display:flex;align-items:center;gap:11px;margin-right:auto;min-width:0}
+.sitemark-coin{width:46px;height:46px;border-radius:50%;overflow:hidden;flex:0 0 auto;display:block;background:var(--teal)}
+.sitemark-coin img{width:100%;height:100%;object-fit:cover}
+.sitemark-words b{display:block;font:400 1.08rem/1.1 Georgia,serif;color:#173235;letter-spacing:.01em}
+.sitemark-words span{display:block;font:700 .56rem/1.4 Arial,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-ink,#856327)}
+.sitenav{display:flex;align-items:center;gap:20px;font-size:.88rem;font-weight:700}
+.sitenav-link{color:#173235}
+.sitenav-link:hover{color:var(--teal)}
+.sitesub{display:none}
+
+/* hero */
+.home-hero{background:#fffdf8;border-bottom:1px solid #e4dac6}
+.home-hero-in{max-width:1180px;margin:0 auto;padding:54px 22px 58px;display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center}
+.home-eyebrow{font:700 .7rem/1 Arial,sans-serif;letter-spacing:.17em;text-transform:uppercase;color:var(--gold-ink,#856327);margin:0 0 16px}
+.home-hero-copy h1{font:400 clamp(2.4rem,4.2vw,3.5rem)/1.06 Georgia,serif;color:var(--teal);margin:0 0 18px;letter-spacing:-.01em}
+.home-hero-copy h1 em{font-style:italic;color:var(--gold)}
+.home-lede{font-size:1.05rem;color:#4b5a56;margin:0 0 26px;max-width:46ch}
+.home-cta{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:26px}
+.home-trust{list-style:none;display:flex;flex-wrap:wrap;gap:8px 26px;margin:0;padding:18px 0 0;border-top:1px solid #e4dac6;font-size:.85rem;color:#5d6d69}
+.home-trust b{color:#173235;font-weight:700}
+.home-hero-photo{margin:0;position:relative;border-radius:14px;overflow:hidden;aspect-ratio:4/5;box-shadow:0 18px 40px rgba(22,48,44,.14)}
+.home-hero-img{display:block;width:100%;height:100%;background-size:cover;background-position:center 38%}
+.home-hero-stamp{position:absolute;left:18px;bottom:18px;max-width:74%;background:rgba(0,84,77,.92);color:#f3efe4;border-radius:10px;padding:11px 15px;font-size:.78rem;line-height:1.45}
+.home-hero-stamp b{display:block;font:400 .95rem/1.2 Georgia,serif;margin-bottom:2px}
+
+/* sections */
+.home-section{padding-block:60px}
+.home-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:26px}
+.home-section h2,.home-how h2,.home-account h2{font:400 clamp(1.8rem,3vw,2.4rem)/1.1 Georgia,serif;margin:0;color:#173235}
+.home-sub{margin:7px 0 0;color:#5d6d69;font-size:.95rem;max-width:54ch}
+
+/* treatment cards */
+.home-cats{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+.home-cat{display:flex;flex-direction:column;background:#fffdf8;border:1px solid #e4dac6;border-radius:13px;overflow:hidden;transition:transform .16s ease,box-shadow .16s ease}
+.home-cat:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(22,48,44,.1)}
+.home-cat-photo{display:block;aspect-ratio:16/10;background-size:cover;background-position:center;background-color:#efe9db}
+.home-cat-photo.blank{display:grid;place-items:center;background:linear-gradient(160deg,var(--teal) 0%,var(--teal-deep) 100%)}
+.home-cat-photo.blank img{width:74px;height:74px;border-radius:50%;object-fit:cover}
+.home-cat-body{display:flex;flex-direction:column;gap:7px;padding:17px 18px 18px;flex:1}
+.home-cat-name{font:400 1.25rem/1.2 Georgia,serif;color:#173235}
+.home-cat-short{font-size:.88rem;color:#5d6d69;flex:1}
+.home-cat-foot{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-top:4px;padding-top:12px;border-top:1px solid #e4dac6}
+.home-cat-price{font:700 .95rem/1 Arial,sans-serif;color:var(--gold-ink,#856327);font-variant-numeric:tabular-nums}
+.home-cat-go{font:700 .78rem/1 Arial,sans-serif;color:var(--teal)}
+
+/* how booking works */
+.home-how{background:#f2ebdc;border-block:1px solid #e4dac6;padding-block:58px}
+.home-steps{list-style:none;counter-reset:hstep;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px}
+.home-step{counter-increment:hstep;display:flex;flex-direction:column;gap:7px}
+.home-step::before{content:counter(hstep);font:400 1.5rem/1 Georgia,serif;color:var(--teal);width:42px;height:42px;border:1px solid var(--champagne,#cbc29f);border-radius:50%;display:grid;place-items:center;margin-bottom:5px}
+.home-step b{font:400 1.1rem/1.25 Georgia,serif;color:#173235}
+.home-step span{font-size:.92rem;color:#5d6d69}
+
+/* find us */
+.home-places{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:16px}
+.home-place{background:#fffdf8;border:1px solid #e4dac6;border-radius:13px;padding:22px}
+.home-place h3{font:400 1.3rem/1.2 Georgia,serif;margin:0 0 8px;color:#173235}
+.home-place p{margin:0;color:#5d6d69;font-size:.92rem}
+.home-hours{margin-top:11px;padding-top:11px;border-top:1px dashed #e4dac6;color:var(--gold-ink,#856327)}
+.home-reach{display:flex;flex-wrap:wrap;gap:10px 26px;margin:22px 0 0;font-size:.95rem;color:#4b5a56}
+.home-reach a{color:var(--teal);font-weight:700}
+
+/* account strip */
+.home-account{background:var(--teal);color:#eef6f3;padding-block:38px}
+.home-account h2{color:#fffdf8}
+.home-account .home-eyebrow{color:var(--gold-highlight,#eee4bf)}
+.home-account .home-sub{color:#cfe4df}
+.home-account-in{display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
+
+/* footer */
+.home-foot{background:#fffdf8;border-top:1px solid #e4dac6;padding-block:34px;font-size:.88rem;color:#5d6d69}
+.home-foot-in{display:flex;flex-wrap:wrap;gap:22px 48px;justify-content:space-between}
+.home-foot b{display:block;color:#173235;font-weight:700;margin-bottom:5px}
+
+@media(max-width:900px){
+  .home-hero-in{grid-template-columns:1fr;gap:28px;padding-block:32px 38px}
+  .home-hero-photo{aspect-ratio:3/2}
+}
+@media(max-width:860px){
+  .sitebar-in{flex-wrap:wrap;row-gap:9px;padding-block:10px}
+  .sitenav-link{display:none}
+  .sitemark-coin{width:40px;height:40px}
+  .sitemark-words b{font-size:.98rem;white-space:nowrap}
+  .sitemark-words span{display:none}
+  .site-btn{padding:10px 17px;font-size:.84rem}
+  .sitesub{display:flex;order:3;width:100%;gap:20px;overflow-x:auto;scrollbar-width:none;border-top:1px solid #e4dac6;padding-top:9px;font:700 .84rem/1 Arial,sans-serif}
+  .sitesub::-webkit-scrollbar{display:none}
+  .sitesub a{white-space:nowrap;color:var(--teal)}
+}
+@media(max-width:620px){
+  .home-cta{flex-direction:column;align-items:stretch}
+  .home-trust{gap:6px 18px;font-size:.8rem}
+}
+/* the header is sticky, so in-page jumps must clear it */
+#treatments,#how,#find{scroll-margin-top:96px}
+@media(max-width:860px){#treatments,#how,#find{scroll-margin-top:168px}}
