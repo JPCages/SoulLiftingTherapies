@@ -32,7 +32,11 @@ The test deployment currently stores editable content in Cloudflare D1. Railway 
 
 ```text
 DATABASE_URL=
-ADMIN_EMAIL=emmacerklewicz@yahoo.co.uk
+# Emma's sign-in email. Set the real address in Railway only; never commit it.
+ADMIN_EMAIL=
+ADMIN_PASSWORD=
+# Required. Long random string used to sign session cookies; the app refuses to start without it.
+AUTH_SECRET=
 RESEND_API_KEY=
 EMAIL_FROM=
 EMAIL_REPLY_TO=soulliftingtherapies@gmail.com

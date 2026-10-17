@@ -1,8 +1,9 @@
-import {createHmac,randomBytes,scryptSync,timingSafeEqual} from 'node:crypto';
+import {randomBytes,scryptSync,timingSafeEqual} from 'node:crypto';
 import {cookies} from 'next/headers';
+import {signToken,verifyToken} from './auth';
 
 export const CUSTOMER_COOKIE='soul_customer';
-function secret(){return process.env.AUTH_SECRET??'development-only-change-me'}
+export const CUSTOMER_TOKEN_MAX_AGE_MS=30*24*60*60*1000;
 
 // --- password hashing (scrypt) ---
 export function hashPassword(password:string):string{
@@ -18,15 +19,11 @@ export function verifyPassword(password:string,stored:string):boolean{
   return test.length===expected.length&&timingSafeEqual(test,expected);
 }
 
-// --- signed session token carrying the customer id ---
-function sign(value:string){return createHmac('sha256',secret()).update(value).digest('hex')}
-export function createCustomerToken(id:number){return `${id}.${sign('customer:'+id)}`}
+// --- signed session token carrying the customer id and issue time (see lib/auth.ts) ---
+export function createCustomerToken(id:number){return signToken('customer',String(id))}
 export function verifyCustomerToken(token?:string):number|null{
-  if(!token)return null;
-  const dot=token.indexOf('.');
-  if(dot<1)return null;
-  const id=token.slice(0,dot), sig=token.slice(dot+1), expected=sign('customer:'+id);
-  if(sig.length!==expected.length||!timingSafeEqual(Buffer.from(sig),Buffer.from(expected)))return null;
+  const id=verifyToken('customer',token,CUSTOMER_TOKEN_MAX_AGE_MS);
+  if(id===null)return null;
   const n=Number(id);
   return Number.isInteger(n)?n:null;
 }
