@@ -3,6 +3,9 @@ import {useEffect,useRef,useState} from 'react';
 import {defaultSiteContent,withDefaults,type SiteContent,type Feeling} from '@/lib/site-content';
 import type {Category,Service} from '@/lib/sandbox-data';
 import NextImage from 'next/image';
+import {ImageControl,compress} from './image-control';
+import PageEditor from './page-editor';
+import type {SitePuckData} from '@/lib/puck/config';
 
 const blankService:Service={name:'New treatment',price:'£0',duration:'30 minutes',description:'',note:''};
 type Section='overview'|'homepage'|'services'|'account'|'booking'|'login'|'locations'|'loyalty'|'clients'|'requests';
@@ -13,43 +16,6 @@ type ClientRow={id:number;full_name:string;phone:string|null;email:string|null;a
 type ClientStats={total:number;linked:number;withEmail:number;marketing:number};
 type BookingStatus='new'|'offered'|'confirmed'|'declined';
 type BookingRow={id:number;name:string;email:string|null;phone:string;treatment:string;location:string;preferences:string;notes:string|null;status:BookingStatus;client_name:string|null;created_at:string};
-
-// Compress an image in the browser so uploads stay small and fast.
-function compress(file:File,maxDim=1400,quality=0.72):Promise<string>{
- return new Promise((resolve,reject)=>{
-  const reader=new FileReader();
-  reader.onerror=()=>reject(new Error('Could not read the file'));
-  reader.onload=()=>{
-   const img=new Image();
-   img.onerror=()=>reject(new Error('That file is not a valid image'));
-   img.onload=()=>{
-    const scale=Math.min(1,maxDim/Math.max(img.width,img.height));
-    const w=Math.round(img.width*scale),h=Math.round(img.height*scale);
-    const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
-    const ctx=canvas.getContext('2d');
-    if(!ctx){reject(new Error('Image processing is unavailable'));return}
-    ctx.drawImage(img,0,0,w,h);
-    resolve(canvas.toDataURL('image/jpeg',quality));
-   };
-   img.src=reader.result as string;
-  };
-  reader.readAsDataURL(file);
- });
-}
-
-function ImageControl({image,label,busy,onFile,onClear,wide,pos,onPos}:{image?:string;label:string;busy:boolean;onFile:(f:File|undefined)=>void;onClear:()=>void;wide?:boolean;pos?:number;onPos?:(n:number)=>void}){
- const input=useRef<HTMLInputElement>(null);
- const p=pos??50;
- return <div className="img-control">
-  <div className={wide?'img-thumb wide':'img-thumb'} style={image?{backgroundImage:`url('${image}')`,backgroundPosition:`center ${p}%`}:undefined}>{!image&&<span>No image</span>}</div>
-  <div className="img-actions">
-   <input ref={input} type="file" accept="image/*" hidden onChange={e=>{onFile(e.target.files?.[0]);e.target.value=''}}/>
-   <button type="button" className="img-btn" disabled={busy} onClick={()=>input.current?.click()}>{busy?'Uploading…':image?`Change ${label}`:`Upload ${label}`}</button>
-   {image&&<button type="button" className="img-btn ghost" disabled={busy} onClick={onClear}>Remove</button>}
-   {image&&onPos&&<div className="img-pos"><label>Position</label><input type="range" min={0} max={100} value={p} onChange={e=>onPos(Number(e.target.value))}/></div>}
-  </div>
- </div>;
-}
 
 export default function ContentEditor(){
  const [content,setContent]=useState<SiteContent>(defaultSiteContent);
@@ -113,7 +79,20 @@ export default function ContentEditor(){
  const removeCategory=(ci:number)=>confirm('Remove this category and all its treatments?')&&setContent(c=>({...c,categories:c.categories.filter((_,i)=>i!==ci)}));
  const addService=(ci:number)=>updateCategory(ci,{services:[...content.categories[ci].services,{...blankService,name:`New treatment ${content.categories[ci].services.length+1}`}]});
  const removeService=(ci:number,si:number)=>confirm('Remove this treatment?')&&updateCategory(ci,{services:content.categories[ci].services.filter((_,i)=>i!==si)});
- const save=async()=>{setStatus('Saving…');const r=await fetch('/api/content',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(content)});setStatus(r.ok?'Changes published':'Could not save — please sign in again')};
+ const put=async(doc:SiteContent)=>{
+  setStatus('Saving…');
+  const r=await fetch('/api/content',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(doc)});
+  setStatus(r.ok?'Changes published':'Could not save — please sign in again');
+  return r.ok;
+ };
+ const save=async()=>{await put(content)};
+ // Publishing from the visual editor saves the layout alongside everything else
+ // in the same document, so one Save button covers the whole site.
+ const publishPage=async(data:SitePuckData)=>{
+  const doc={...content,puck:data as unknown as SiteContent['puck']};
+  setContent(doc);
+  await put(doc);
+ };
 
  async function handleUpload(key:string,file:File|undefined,onDone:(url:string)=>void){
   if(!file)return;
@@ -135,19 +114,11 @@ export default function ContentEditor(){
  const heroField=(k:'heroImage'|'accountHeroImage',label:string)=><div className="img-field"><span className="img-field-label">{label}</span><ImageControl wide image={val(k)} label="image" busy={uploading===k} onFile={f=>handleUpload(k,f,url=>field(k,url))} onClear={()=>field(k,'')}/></div>;
  const numField=(k:keyof SiteContent,label:string)=><label key={k}>{label}<input type="number" min={1} value={(content[k] as number|undefined)??''} onChange={e=>setNum(k,e.target.value)}/></label>;
 
- return <main className="admin-shell"><aside className="admin-sidebar"><a className="admin-brand" href="/" aria-label="Soul Lifting Therapies"><span className="brand-mark emblem"><NextImage src="/brand/logo-emblem.webp" alt="Soul Lifting Therapies" width={800} height={800}/></span></a><nav>{NAV.map(([x,label])=><button className={section===x?'active':''} onClick={()=>setSection(x)} key={x}>{label}{x==='requests'&&newCount>0&&<span className="nav-badge">{newCount}</span>}</button>)}</nav><a href="/services">View customer app ↗</a></aside><section className="admin-workspace"><header><div><p className="eyebrow">Emma’s admin</p><h1>{TITLE[section]}</h1></div><div className="admin-save"><span>{status}</span><button onClick={save}>Save &amp; publish</button></div></header>
+ return <main className="admin-shell"><aside className="admin-sidebar"><a className="admin-brand" href="/" aria-label="Soul Lifting Therapies"><span className="brand-mark emblem"><NextImage src="/brand/logo-emblem.webp" alt="Soul Lifting Therapies" width={800} height={800}/></span></a><nav>{NAV.map(([x,label])=><button className={section===x?'active':''} onClick={()=>setSection(x)} key={x}>{label}{x==='requests'&&newCount>0&&<span className="nav-badge">{newCount}</span>}</button>)}</nav><a href="/services">View customer app ↗</a></aside><section className="admin-workspace"><header><div><p className="eyebrow">Emma’s admin</p><h1>{TITLE[section]}</h1></div><div className="admin-save"><span>{status}</span>{section!=='homepage'&&<button onClick={save}>Save &amp; publish</button>}</div></header>
 
- {section==='overview'&&<div className="admin-overview"><div className="admin-stat"><span>Published treatments</span><strong>{content.categories.reduce((n,c)=>n+c.services.length,0)}</strong></div><div className="admin-stat"><span>Categories</span><strong>{content.categories.length}</strong></div><div className="admin-stat"><span>Locations</span><strong>2</strong></div><div className="admin-stat"><span>Requests needing a reply</span><strong>{newCount}</strong></div><article className="admin-card wide"><h2>Everything here is editable</h2><p>Use the menu on the left to edit the <b>homepage</b>, <b>treatments and photos</b>, the <b>customer app</b>, the <b>booking page</b>, the <b>sign-in page</b> and your <b>business details</b>. You can also add a banner image behind each treatment heading. Press <b>Save &amp; publish</b> when you are ready for customers to see the changes.</p></article></div>}
+ {section==='overview'&&<div className="admin-overview"><div className="admin-stat"><span>Published treatments</span><strong>{content.categories.reduce((n,c)=>n+c.services.length,0)}</strong></div><div className="admin-stat"><span>Categories</span><strong>{content.categories.length}</strong></div><div className="admin-stat"><span>Locations</span><strong>2</strong></div><div className="admin-stat"><span>Requests needing a reply</span><strong>{newCount}</strong></div><article className="admin-card wide"><h2>Everything here is editable</h2><p>Use the menu on the left to edit the <b>homepage</b> on the page itself, <b>treatments and photos</b>, the <b>customer app</b>, the <b>booking page</b>, the <b>sign-in page</b> and your <b>business details</b>. You can also add a banner image behind each treatment heading. Press <b>Save &amp; publish</b> when you are ready for customers to see the changes.</p></article></div>}
 
- {section==='homepage'&&<><div className="admin-card admin-fields">{text('businessName','Business name')}{text('descriptor','Business descriptor')}{text('heroTitle','Main headline')}{text('heroAccent','Gold headline wording')}{area('heroIntro','Homepage introduction')}{area('notice','Announcement banner (leave blank to hide)')}</div>
- <div className="admin-card">{heroField('heroImage','Homepage banner image (behind the headline)')}</div>
- <div className="admin-card admin-fields">{text('homeMenuEyebrow','Treatment-menu label')}{text('homeMenuHeading','Treatment-menu heading')}{area('homeMenuSub','Line under the treatment heading (blank counts your treatments for you)')}{text('homePrivateEyebrow','Private-space label')}{text('homePrivateHeading','Private-space heading')}{area('homePrivateIntro','Private-space text')}{text('homeLoginCta','Log-in button text')}</div>
-
- <div className="admin-card admin-fields"><h2 className="wide">Under the headline</h2>{text('homeTrustYears','Second fact (e.g. 10+ years in practice)')}{text('homeTrustPlaces','Third fact (e.g. Two locations across Lincolnshire)')}<p className="hint wide">The first fact counts your treatments automatically. Clear a box to hide that fact.</p>{text('homeHeroCaptionTitle','Caption on the photo &mdash; heading')}{area('homeHeroCaptionText','Caption on the photo &mdash; text')}<p className="hint wide">Leave both caption boxes empty and no caption appears.</p></div>
-
- <div className="admin-card admin-fields"><h2 className="wide">How booking works</h2>{text('homeHowEyebrow','Label')}{text('homeHowHeading','Heading')}{area('homeHowIntro','Introduction')}{text('homeStep1Title','Step 1 heading')}{area('homeStep1Text','Step 1 text')}{text('homeStep2Title','Step 2 heading')}{area('homeStep2Text','Step 2 text')}{text('homeStep3Title','Step 3 heading')}{area('homeStep3Text','Step 3 text')}<p className="hint wide">Clear a step heading to remove that step. Clear all three to hide the section.</p></div>
-
- <div className="admin-card admin-fields"><h2 className="wide">Where to find you</h2>{text('homeFindHeading','Heading')}{area('homeFindIntro','Introduction')}{text('horncastleHours','Horncastle opening hours')}{text('woodhallHours','Woodhall Spa opening hours')}<p className="hint wide">Addresses come from <b>Business details</b>. Leave the hours blank and none are shown.</p></div></>}
+ {section==='homepage'&&<PageEditor content={content} saving={status==='Saving…'} onPublish={publishPage}/>}
 
  {section==='services'&&<div className="service-manager"><div className="admin-card admin-fields">{text('servicesTitle','Treatments page title')}{text('servicesHelpHeading','Help box heading')}{text('servicesHelpCta','Help box button (WhatsApp)')}</div><button className="add-category" onClick={addCategory}>＋ Add category</button>{content.categories.map((cat,ci)=><article className="admin-card category-editor" key={ci}><div className="category-editor-head"><div><input className="category-name" value={cat.name} onChange={e=>updateCategory(ci,{name:e.target.value})}/><input className="category-intro-input" value={cat.short} onChange={e=>updateCategory(ci,{short:e.target.value})}/></div><button className="danger" onClick={()=>removeCategory(ci)}>Remove category</button></div>
  <div className="img-field"><span className="img-field-label">Banner image <em>(behind the “{cat.name}” heading)</em></span><ImageControl wide image={cat.banner} label="banner" busy={uploading===`ban-${ci}`} pos={cat.bannerPos} onPos={n=>updateCategory(ci,{bannerPos:n})} onFile={f=>handleUpload(`ban-${ci}`,f,url=>updateCategory(ci,{banner:url}))} onClear={()=>updateCategory(ci,{banner:undefined})}/></div>
@@ -163,7 +134,7 @@ export default function ContentEditor(){
 
  {section==='login'&&<div className="admin-card admin-fields">{text('loginEyebrow','Label')}{text('loginHeading','Heading')}{area('loginIntro','Intro text')}{text('loginCustomerTitle','Customer button title')}{area('loginCustomerBlurb','Customer button text')}{text('loginAdminTitle','Emma button title')}{area('loginAdminBlurb','Emma button text')}</div>}
 
- {section==='locations'&&<div className="admin-card admin-fields">{text('phone','Phone')}{text('email','Email')}{area('horncastle','Horncastle address')}{area('woodhall','Woodhall Spa address')}</div>}
+ {section==='locations'&&<div className="admin-card admin-fields">{text('businessName','Business name')}{text('descriptor','Business descriptor')}{text('phone','Phone')}{text('email','Email')}{area('horncastle','Horncastle address')}{text('horncastleHours','Horncastle opening hours')}{area('woodhall','Woodhall Spa address')}{text('woodhallHours','Woodhall Spa opening hours')}<p className="hint wide">These appear on the homepage, in the footer and on the booking page. Leave the hours blank and none are shown.</p></div>}
 
  {section==='loyalty'&&<><div className="admin-card admin-fields"><label className="wide toggle"><input type="checkbox" checked={content.loyaltyEnabled!==false} onChange={e=>setContent(c=>({...c,loyaltyEnabled:e.target.checked}))}/> Show the Soul Points programme to customers</label>{numField('loyaltyPoundsPerPoint','£ spent for 1 point (10 = every £10 earns a point)')}{numField('loyaltyRewardPoints','Points needed for a reward (40 = £400 spent)')}{text('loyaltyRewardText','The reward',true)}<p className="hint wide">These rules save with <b>Save &amp; publish</b>. Adding visits and redeeming rewards below happen instantly.</p></div>
  <div className="admin-card"><h2>Customers</h2><p className="cust-msg">{custMsg}</p>{customers.length===0?<p className="muted">No customer accounts yet. When customers sign up on the app, they will appear here so you can log their visits.</p>:<div className="cust-list">{customers.map(c=>{const ready=c.balance>=(content.loyaltyRewardPoints??40);return <div className="cust-row" key={c.id}><div className="cust-id"><b>{c.name}</b><span>{c.email}</span></div><div className="cust-points"><strong>{c.balance}</strong> pts<small>£{(c.total_spent_pennies/100).toFixed(0)} lifetime</small></div><div className="cust-actions"><div className="visit-add"><span>£</span><input type="number" min={0} value={amounts[c.id]??'50'} onChange={e=>setAmounts(a=>({...a,[c.id]:e.target.value}))}/><button className="img-btn" onClick={()=>addVisit(c.id)}>Add visit</button></div><button className={ready?'img-btn':'img-btn ghost'} disabled={!ready} onClick={()=>redeem(c.id)}>{ready?'Redeem reward':'Reward not ready'}</button></div></div>})}</div>}</div></>}

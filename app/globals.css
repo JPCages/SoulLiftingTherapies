@@ -800,3 +800,12 @@ button.luxury-treatment-card { width:100%; padding:0; font:inherit; text-align:l
 
 /* The sticky site header must not sit on top of a sticky tab row. */
 @media(min-width:860px){.sitebar{top:0}}
+
+/* ===================================================================
+   Visual page editor. The canvas fills the workspace; everything else
+   in the portal keeps its own layout.
+   =================================================================== */
+.puck-wrap{position:relative;height:calc(100vh - 118px);min-height:560px;margin:-4px -4px 0;border:1px solid #e3dbce;border-radius:12px;overflow:hidden;background:#fff}
+.puck-wrap .Puck{height:100%}
+.puck-saving{font:700 .78rem/1 Arial,sans-serif;color:var(--teal);align-self:center;margin-right:10px}
+.puck-field-error{margin:6px 0 0;font-size:.78rem;color:#9a2f2f}

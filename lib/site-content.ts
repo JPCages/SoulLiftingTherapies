@@ -63,6 +63,19 @@ export type SiteContent = {
   loyaltyPoundsPerPoint?: number; // £ spent per 1 point (default 10 → £10 = 1 point)
   loyaltyRewardPoints?: number;   // points needed for a reward (default 40 → £400)
   loyaltyRewardText?: string;     // what the reward is
+
+  // Homepage layout as edited in the visual editor. Absent on a document saved
+  // before the editor existed: the homepage then derives it from the fields
+  // above, so nothing Emma has written is lost.
+  puck?: PuckDocument;
+};
+
+// Structural shape of a Puck document. Kept local so the content model does not
+// drag the editor bundle into every page that imports it.
+export type PuckDocument = {
+  root: { props?: Record<string, unknown> };
+  content: { type: string; props: Record<string, unknown> }[];
+  zones?: Record<string, { type: string; props: Record<string, unknown> }[]>;
 };
 
 export const defaultSiteContent: SiteContent = {
