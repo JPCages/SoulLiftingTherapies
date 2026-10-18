@@ -35,6 +35,11 @@ export default function ContentEditor(){
  const [newCount,setNewCount]=useState(0);
  const [reqFilter,setReqFilter]=useState<'new'|'all'>('new');
  const [reqMsg,setReqMsg]=useState('');
+ // Booking alerts: where Emma is emailed about new requests.
+ const [alert,setAlert]=useState<{email:string;effective:string|null;configured:boolean}|null>(null);
+ const [alertDraft,setAlertDraft]=useState('');
+ const [alertMsg,setAlertMsg]=useState('');
+ const [alertBusy,setAlertBusy]=useState(false);
  useEffect(()=>{fetch('/api/content').then(r=>r.json()).then(x=>setContent(withDefaults(x))).catch(()=>{})},[]);
  const loadCustomers=()=>fetch('/api/admin/customers').then(r=>r.json()).then(d=>setCustomers(d.customers||[])).catch(()=>{});
  useEffect(()=>{if(section==='loyalty')loadCustomers()},[section]);
@@ -42,6 +47,23 @@ export default function ContentEditor(){
  useEffect(()=>{if(section==='clients'){loadClients();loadCustomers()}},[section]);
  const loadRequests=(status=reqFilter)=>fetch('/api/admin/bookings?status='+status).then(r=>r.json()).then(d=>{setRequests(d.requests||[]);setNewCount(d.newCount??0)}).catch(()=>{});
  // The badge is worth knowing about from any screen, so it loads once on mount too.
+ useEffect(()=>{if(section!=='requests'||alert)return;fetch('/api/admin/alerts').then(r=>r.json()).then(d=>{if(d.error)return;setAlert(d);setAlertDraft(d.email||'')}).catch(()=>{})},[section,alert]);
+ const saveAlert=async()=>{
+  setAlertBusy(true);setAlertMsg('');
+  const r=await fetch('/api/admin/alerts',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify({email:alertDraft})});
+  const d=await r.json().catch(()=>({}));
+  setAlertBusy(false);
+  if(!r.ok){setAlertMsg(d.error||'Could not save');return}
+  setAlert(a=>a?{...a,email:alertDraft.trim().toLowerCase(),effective:d.effective}:a);
+  setAlertMsg('Saved.');
+ };
+ const testAlert=async()=>{
+  setAlertBusy(true);setAlertMsg('Sending…');
+  const r=await fetch('/api/admin/alerts',{method:'POST'});
+  const d=await r.json().catch(()=>({}));
+  setAlertBusy(false);
+  setAlertMsg(r.ok?`Test sent to ${d.to}. Check your inbox (and spam, the first time).`:(d.error||'The test could not be sent.'));
+ };
  useEffect(()=>{fetch('/api/admin/bookings?status=new').then(r=>r.json()).then(d=>setNewCount(d.newCount??0)).catch(()=>{})},[]);
  useEffect(()=>{if(section!=='requests')return;let live=true;fetch('/api/admin/bookings?status='+reqFilter).then(r=>r.json()).then(d=>{if(!live)return;setRequests(d.requests||[]);setNewCount(d.newCount??0)}).catch(()=>{});return()=>{live=false}},[section,reqFilter]);
  const setRequestStatus=async(id:number,status:BookingStatus)=>{
@@ -114,7 +136,7 @@ export default function ContentEditor(){
  const heroField=(k:'heroImage'|'accountHeroImage',label:string)=><div className="img-field"><span className="img-field-label">{label}</span><ImageControl wide image={val(k)} label="image" busy={uploading===k} onFile={f=>handleUpload(k,f,url=>field(k,url))} onClear={()=>field(k,'')}/></div>;
  const numField=(k:keyof SiteContent,label:string)=><label key={k}>{label}<input type="number" min={1} value={(content[k] as number|undefined)??''} onChange={e=>setNum(k,e.target.value)}/></label>;
 
- return <main className="admin-shell"><aside className="admin-sidebar"><a className="admin-brand" href="/" aria-label="Soul Lifting Therapies"><span className="brand-mark emblem"><NextImage src="/brand/logo-emblem.webp" alt="Soul Lifting Therapies" width={800} height={800}/></span></a><nav>{NAV.map(([x,label])=><button className={section===x?'active':''} onClick={()=>setSection(x)} key={x}>{label}{x==='requests'&&newCount>0&&<span className="nav-badge">{newCount}</span>}</button>)}</nav><a href="/services">View customer app ↗</a></aside><section className="admin-workspace"><header><div><p className="eyebrow">Emma’s admin</p><h1>{TITLE[section]}</h1></div><div className="admin-save"><span>{status}</span>{section!=='homepage'&&<button onClick={save}>Save &amp; publish</button>}</div></header>
+ return <main className="admin-shell"><aside className="admin-sidebar"><a className="admin-brand" href="/" aria-label="Soul Lifting Therapies"><span className="brand-mark emblem"><NextImage src="/brand/logo-emblem.webp" alt="Soul Lifting Therapies" width={800} height={800}/></span></a><nav>{NAV.map(([x,label])=><button className={section===x?'active':''} onClick={()=>setSection(x)} key={x}>{label}{x==='requests'&&newCount>0&&<span className="nav-badge">{newCount}</span>}</button>)}</nav><a href="/services">View customer app ↗</a></aside><section className="admin-workspace"><header><div><p className="eyebrow">Emma’s admin</p><h1>{TITLE[section]}</h1></div><div className="admin-save"><span>{status}</span>{section!=='homepage'&&section!=='requests'&&<button onClick={save}>Save &amp; publish</button>}</div></header>
 
  {section==='overview'&&<div className="admin-overview"><div className="admin-stat"><span>Published treatments</span><strong>{content.categories.reduce((n,c)=>n+c.services.length,0)}</strong></div><div className="admin-stat"><span>Categories</span><strong>{content.categories.length}</strong></div><div className="admin-stat"><span>Locations</span><strong>2</strong></div><div className="admin-stat"><span>Requests needing a reply</span><strong>{newCount}</strong></div><article className="admin-card wide"><h2>Everything here is editable</h2><p>Use the menu on the left to edit the <b>homepage</b> on the page itself, <b>treatments and photos</b>, the <b>customer app</b>, the <b>booking page</b>, the <b>sign-in page</b> and your <b>business details</b>. You can also add a banner image behind each treatment heading. Press <b>Save &amp; publish</b> when you are ready for customers to see the changes.</p></article></div>}
 
@@ -155,7 +177,13 @@ export default function ContentEditor(){
    :<select defaultValue="" onChange={e=>e.target.value&&linkClient(c.id,Number(e.target.value))}><option value="">Link to an app account…</option>{customers.map(cu=><option key={cu.id} value={cu.id}>{cu.name} ({cu.email})</option>)}</select>}</div></div>)}</div>}
  </div></>}
 
- {section==='requests'&&<><div className="admin-card"><h2>Requests from customers</h2><p className="hint">These are requests, not bookings. Check the time in Fresha, then confirm or decline here so you know what you have dealt with. The customer is told nothing is held until you confirm.</p>
+ {section==='requests'&&<><div className="admin-card admin-fields alert-card"><h2 className="wide">Booking alerts</h2>
+ {alert&&!alert.configured&&<p className="hint wide alert-off">Email is not switched on yet. Requests still arrive here; JP is setting up the email side.</p>}
+ <label className="wide">Email me new requests at<input type="email" value={alertDraft} placeholder={content.email||'you@example.com'} onChange={e=>setAlertDraft(e.target.value)}/></label>
+ <p className="hint wide">Leave blank to use your business email{content.email?` (${content.email})`:''}. Hit reply on an alert and it goes straight to the customer, when they gave an email.</p>
+ <div className="alert-actions wide"><button type="button" disabled={alertBusy} onClick={saveAlert}>Save</button><button type="button" className="ghost" disabled={alertBusy||!alert?.configured} onClick={testAlert}>Send me a test</button><span className="cust-msg">{alertMsg}</span></div>
+ </div>
+ <div className="admin-card"><h2>Requests from customers</h2><p className="hint">These are requests, not bookings. Check the time in Fresha, then confirm or decline here so you know what you have dealt with. The customer is told nothing is held until you confirm.</p>
  <div className="req-filter"><button className={reqFilter==='new'?'active':''} onClick={()=>setReqFilter('new')}>Needs a reply{newCount>0?` (${newCount})`:''}</button><button className={reqFilter==='all'?'active':''} onClick={()=>setReqFilter('all')}>All requests</button></div>
  <p className="cust-msg">{reqMsg}</p>
  {requests.length===0?<p className="muted">{reqFilter==='new'?'Nothing waiting. Anything new will appear here.':'No requests yet.'}</p>:<div className="req-list">{requests.map(r=><article className={r.status==='new'?'req is-new':'req'} key={r.id}>

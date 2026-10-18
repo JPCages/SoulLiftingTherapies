@@ -201,3 +201,19 @@ export async function countNewBookingRequests():Promise<number>{
   const {rows}=await pool().query("SELECT count(*)::int AS n FROM booking_requests WHERE status='new'");
   return rows[0]?.n??0;
 }
+
+// ---------------------------------------------------------------------------
+// Private settings. Kept out of site_content on purpose: GET /api/content is
+// public, and things like the address booking alerts go to must not be.
+function settingsReady(){return once('app_settings',async()=>{await pool().query('CREATE TABLE IF NOT EXISTS app_settings (key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())')})}
+export async function getSetting(key:string):Promise<string|null>{
+  if(!process.env.DATABASE_URL)return null;
+  await settingsReady();
+  const {rows}=await pool().query('SELECT value FROM app_settings WHERE key=$1',[key]);
+  return rows[0]?.value??null;
+}
+export async function setSetting(key:string,value:string|null){
+  await settingsReady();
+  if(value===null||value===''){await pool().query('DELETE FROM app_settings WHERE key=$1',[key]);return}
+  await pool().query('INSERT INTO app_settings(key,value,updated_at) VALUES($1,$2,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()',[key,value]);
+}

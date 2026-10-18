@@ -809,3 +809,10 @@ button.luxury-treatment-card { width:100%; padding:0; font:inherit; text-align:l
 .puck-wrap .Puck{height:100%}
 .puck-saving{font:700 .78rem/1 Arial,sans-serif;color:var(--teal);align-self:center;margin-right:10px}
 .puck-field-error{margin:6px 0 0;font-size:.78rem;color:#9a2f2f}
+
+/* Booking alerts card */
+.alert-card .alert-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.alert-card .alert-actions button{padding:10px 18px;border-radius:999px;border:1px solid var(--teal);background:var(--teal);color:#fff;font-weight:700;cursor:pointer}
+.alert-card .alert-actions button.ghost{background:transparent;color:var(--teal)}
+.alert-card .alert-actions button:disabled{opacity:.5;cursor:default}
+.alert-card .alert-off{background:#f6efe1;border:1px solid #e4dac6;border-radius:9px;padding:10px 12px;color:#6b5528}
