@@ -64,6 +64,10 @@ export type SiteContent = {
   loyaltyRewardPoints?: number;   // points needed for a reward (default 40 → £400)
   loyaltyRewardText?: string;     // what the reward is
 
+  // Search and sharing. Blank falls back to the coded wording below.
+  seoTitle?: string;        // the homepage title in Google results and browser tabs
+  seoDescription?: string;  // the line of text under it in Google results
+
   // Homepage layout as edited in the visual editor. Absent on a document saved
   // before the editor existed: the homepage then derives it from the fields
   // above, so nothing Emma has written is lost.
