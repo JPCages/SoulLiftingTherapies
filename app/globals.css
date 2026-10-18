@@ -40,7 +40,7 @@
 .app-bottom-nav a { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; color:#26393b; font-size:.56rem; font-weight:600; }
 .app-bottom-nav a span { font-size:1.13rem; font-weight:400; }
 .app-bottom-nav a.active { color:var(--app-teal); }
-@media(min-width:721px) { .treatments-app { max-width:440px; margin:26px auto; border:1px solid #d8cdbb; border-radius:34px; overflow:hidden; box-shadow:0 20px 60px rgba(32,43,40,.16); position:relative; min-height:830px; } .treatments-app .app-bottom-nav { position:sticky; margin-top:10px; } }
+
 * {
   box-sizing: border-box;
 }
@@ -249,7 +249,7 @@ h3 {
   background: #e8efea;
 }
 .login {
-  min-height: 100vh;
+  min-height: calc(100vh - 118px);
   background: var(--teal);
   color: var(--cream);
   padding: 2rem;
@@ -425,7 +425,7 @@ footer {
 .bottomnav a { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; color:#294043; font-size:1.05rem; }
 .bottomnav a span { font-size:.55rem; font-weight:600; }
 .bottomnav a:first-child { color:var(--teal); }
-@media(min-width:721px) { .account { max-width:430px; margin:25px auto; border:1px solid #d7ccbb; border-radius:34px; overflow:hidden; box-shadow:0 22px 60px rgba(32,43,40,.16); position:relative; } .account .bottomnav { position:sticky; margin-top:8px; } }
+
 @media(max-width:720px) { .portal-head,.warning { align-items:flex-start; flex-direction:column; } .stats,.portal-grid,.panel form,.editor>.grid { grid-template-columns:1fr; } .mini-slot { grid-template-columns:1fr; gap:3px; } .saved { display:block; margin:10px 0 0; } }
 
 @media (max-width: 720px) {
@@ -749,3 +749,54 @@ button.luxury-treatment-card { width:100%; padding:0; font:inherit; text-align:l
 /* the header is sticky, so in-page jumps must clear it */
 #treatments,#how,#find{scroll-margin-top:96px}
 @media(max-width:860px){#treatments,#how,#find{scroll-margin-top:168px}}
+
+
+/* ===================================================================
+   Desktop layouts for the pages that were built phone-first.
+   Everything below 860px is untouched: the app chrome stays as it is.
+   =================================================================== */
+.sitebar-desk{display:none}
+.home-foot-desk{display:none}
+
+@media(min-width:860px){
+  .sitebar-desk{display:block}
+  .home-foot-desk{display:block}
+
+  /* --- treatments --- */
+  .treatments-app{max-width:none;padding-bottom:40px;background:var(--app-cream)}
+  .treatments-app .app-topbar{display:none}
+  .treatments-app .app-bottom-nav{display:none}
+  .treatment-tabs{max-width:1180px;margin:0 auto;justify-content:center;padding:26px 22px 6px;top:74px;background:var(--app-cream)}
+  .catalogue-list{max-width:1180px;padding:0 22px 36px;display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:16px;align-items:stretch}
+  .catalogue-list>.luxury-treatment-card{height:100%}
+  .catalogue-intro{grid-column:1/-1;padding:18px 2px 10px;text-align:center}
+  .catalogue-intro h2{font-size:2.1rem}
+  .catalogue-intro.has-banner{text-align:left;padding:30px 24px;border-radius:16px}
+  .luxury-treatment-card{min-height:128px}
+  .catalogue-help{max-width:620px;margin:6px auto 30px}
+  .detail-sheet{max-width:560px}
+
+  /* --- customer account --- */
+  .account{max-width:none;padding-bottom:40px}
+  .account .apphead{display:none}
+  .account .bottomnav{display:none}
+  .account-hero{max-width:1180px;margin:22px auto 0;border-radius:16px;padding:40px 36px}
+  .account .feeling,.account .account-grid,.account .points,.account .journey{max-width:1180px;margin-inline:auto}
+  .account .account-grid{grid-template-columns:2fr 1fr}
+  .account .account-grid.solo{grid-template-columns:1fr}
+  .account .feeling-grid{grid-template-columns:repeat(4,1fr)}
+  .account .points{border-radius:16px}
+  .account .journey{margin-bottom:14px}
+
+  /* --- booking and sign-in --- */
+  .booking-page{max-width:760px;padding-bottom:50px}
+  .booking-page .page-hero{padding:38px 0 16px}
+  .booking-page{min-height:0}
+  .booking{padding:0}
+  .booking .grid{grid-template-columns:1fr 1fr}
+  .login{padding-top:0;min-height:calc(100vh - 71px)}
+  .login>section{margin:7vh auto}
+}
+
+/* The sticky site header must not sit on top of a sticky tab row. */
+@media(min-width:860px){.sitebar{top:0}}

@@ -3,6 +3,8 @@ import {useEffect,useState} from 'react';
 import Image from 'next/image';
 import {defaultSiteContent,withDefaults,type SiteContent} from '@/lib/site-content';
 import type {Category} from '@/lib/sandbox-data';
+import SiteHeader from './site-header';
+import SiteFooter from './site-footer';
 
 // Lowest standalone price in a category. Add-ons are skipped: a £10 dermaplaning
 // add-on is not the entry price for facials.
@@ -35,26 +37,7 @@ export default function Home(){
   ].filter(s=>(s.t||'').trim());
 
   return <div className="site">
-    <header className="sitebar">
-      <div className="sitebar-in">
-        <a className="sitemark" href="/" aria-label={c.businessName}>
-          <span className="sitemark-coin"><Image src="/brand/mark-lotus.webp" alt="" width={160} height={160}/></span>
-          <span className="sitemark-words"><b>{c.businessName}</b><span>{c.descriptor}</span></span>
-        </a>
-        <nav className="sitenav" aria-label="Main">
-          <a className="sitenav-link" href="/services">Treatments</a>
-          <a className="sitenav-link" href="#how">How booking works</a>
-          <a className="sitenav-link" href="#find">Find us</a>
-          <a className="site-btn line" href="/login">Log in</a>
-          <a className="site-btn solid" href="/book">Book</a>
-        </nav>
-        <nav className="sitesub" aria-label="Sections">
-          <a href="/services">Treatments</a>
-          <a href="#how">How booking works</a>
-          <a href="#find">Find us</a>
-        </nav>
-      </div>
-    </header>
+    <SiteHeader content={c}/>
 
     {c.notice&&<div className="site-notice">{c.notice}</div>}
 
@@ -165,13 +148,6 @@ export default function Home(){
       </div>
     </section>
 
-    <footer className="home-foot">
-      <div className="home-in home-foot-in">
-        <div><b>{c.businessName}</b>{c.descriptor}</div>
-        {c.horncastle&&<div><b>Horncastle</b>{c.horncastle}</div>}
-        {c.woodhall&&<div><b>Woodhall Spa</b>{c.woodhall}</div>}
-        <div><b>Get in touch</b>{c.phone}<br/>{c.email}</div>
-      </div>
-    </footer>
+    <SiteFooter content={c}/>
   </div>;
 }

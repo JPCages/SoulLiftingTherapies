@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { defaultSiteContent, type SiteContent } from '@/lib/site-content';
 import type { Service } from '@/lib/sandbox-data';
 import Image from 'next/image';
+import SiteHeader from '../site-header';
+import SiteFooter from '../site-footer';
 
 // Fallback photos by category name (used only when no photo has been uploaded).
 const images:Record<string,string>={Massage:'/images/room-forest.jpeg','Facials & advanced skin':'/images/lymphflo.png','Lycon waxing':'/images/wax-underarm.jpg','Eyes & lashes':'/images/emma.jpeg',Cryotherapy:'/images/room-shelf.jpeg','Holistic treatments':'/images/room-forest.jpeg'};
@@ -18,7 +20,7 @@ export default function Services(){
   if(!category) return null;
   const photoFor=(s:Service)=>s.image||category.image||images[category.name]||'/images/room-forest.jpeg';
   const posFor=(s:Service)=>`center ${s.imagePos??category.imagePos??50}%`;
-  return <main className="treatments-app">
+  return <main className="treatments-app"><SiteHeader content={content} desktopOnly/>
     <header className="app-topbar"><a className="mini-brand" href="/" aria-label="Soul Lifting Therapies home"><span className="lotus-mark"><Image src="/brand/mark-lotus.webp" alt="" width={64} height={64}/></span><span>SOUL LIFTING<br/>THERAPIES</span></a><h1>{content.servicesTitle||'Treatments'}</h1><a className="basket" href="/book" aria-label="Bookings">⌑</a></header>
     <nav className="treatment-tabs" aria-label="Treatment categories">{content.categories.map(c=><button key={c.name} className={active===c.name?'active':''} onClick={()=>setActive(c.name)}>{c.name}</button>)}</nav>
     <section className="catalogue-list" aria-live="polite">
@@ -46,5 +48,6 @@ export default function Services(){
     </div>}
 
     <nav className="app-bottom-nav" aria-label="Main navigation"><a href="/"><span>⌂</span>Home</a><a className="active" href="/services"><span>▣</span>Treatments</a><a href="/account"><span>✿</span>Rewards</a><a href="/book"><span>▤</span>Bookings</a><a href="/account"><span>♙</span>Profile</a></nav>
+    <SiteFooter content={content} desktopOnly/>
   </main>;
 }

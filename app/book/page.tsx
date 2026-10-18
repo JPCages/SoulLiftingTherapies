@@ -1,7 +1,8 @@
 "use client";
-import Image from 'next/image';
 import { FormEvent, useEffect, useState } from "react";
 import { defaultSiteContent, type SiteContent } from "@/lib/site-content";
+import SiteHeader from '../site-header';
+import SiteFooter from '../site-footer';
 
 // Quick picks save typing on a phone; whatever is ticked is folded into one
 // preferences line alongside anything the customer writes themselves.
@@ -36,19 +37,15 @@ export default function Book() {
     setError(out.error || 'Something went wrong. Please call Emma instead.'); setBusy(false);
   }
 
-  const brand = <a className="wordmark" href="/" aria-label={copy.businessName}><span className="brand-mark"><Image src="/brand/logo-horizontal.webp" alt={copy.businessName} width={1200} height={498}/></span></a>;
-
-  if (sent) return <main className="booking-page success">
-    <header className="nav">{brand}</header>
+  if (sent) return <><SiteHeader content={copy}/><main className="booking-page success">
     <p className="eyebrow">{copy.bookingRequestEyebrow}</p>
     <h1>{copy.bookingRequestSuccessHeading}</h1>
     <p>{copy.bookingRequestSuccessBody}</p>
     <p className="booking-contact">Need it sooner? Call or text Emma on <a href={`tel:${copy.phone.replace(/\s/g, '')}`}>{copy.phone}</a>.</p>
     <a className="primary" href="/services">Back to treatments</a>
-  </main>;
+  </main><SiteFooter content={copy}/></>;
 
-  return <main className="booking-page">
-    <header className="nav">{brand}<a className="nav-button" href="/services">Treatments</a></header>
+  return <><SiteHeader content={copy}/><main className="booking-page">
     <section className="page-hero">
       <p className="eyebrow">{copy.bookingRequestEyebrow}</p>
       <h1>{copy.bookingRequestHeading}</h1>
@@ -105,5 +102,5 @@ export default function Book() {
       <button className="primary" disabled={busy}>{busy ? 'Sending…' : 'Send request to Emma'}</button>
       <p className="booking-contact">Prefer to talk? Call or text <a href={`tel:${copy.phone.replace(/\s/g, '')}`}>{copy.phone}</a>.</p>
     </form>
-  </main>;
+  </main><SiteFooter content={copy}/></>;
 }
