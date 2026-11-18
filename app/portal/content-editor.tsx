@@ -36,7 +36,7 @@ export default function ContentEditor(){
  const [reqFilter,setReqFilter]=useState<'new'|'all'>('new');
  const [reqMsg,setReqMsg]=useState('');
  // Booking alerts: where Emma is emailed about new requests.
- const [alert,setAlert]=useState<{email:string;effective:string|null;configured:boolean}|null>(null);
+ const [alert,setAlert]=useState<{email:string;effective:string|null;configured:boolean;lastError:{at:string;message:string}|null}|null>(null);
  const [alertDraft,setAlertDraft]=useState('');
  const [alertMsg,setAlertMsg]=useState('');
  const [alertBusy,setAlertBusy]=useState(false);
@@ -63,6 +63,7 @@ export default function ContentEditor(){
   const d=await r.json().catch(()=>({}));
   setAlertBusy(false);
   setAlertMsg(r.ok?`Test sent to ${d.to}. Check your inbox (and spam, the first time).`:(d.error||'The test could not be sent.'));
+  if(r.ok)setAlert(a=>a?{...a,lastError:null}:a);
  };
  useEffect(()=>{fetch('/api/admin/bookings?status=new').then(r=>r.json()).then(d=>setNewCount(d.newCount??0)).catch(()=>{})},[]);
  useEffect(()=>{if(section!=='requests')return;let live=true;fetch('/api/admin/bookings?status='+reqFilter).then(r=>r.json()).then(d=>{if(!live)return;setRequests(d.requests||[]);setNewCount(d.newCount??0)}).catch(()=>{});return()=>{live=false}},[section,reqFilter]);
@@ -179,6 +180,7 @@ export default function ContentEditor(){
 
  {section==='requests'&&<><div className="admin-card admin-fields alert-card"><h2 className="wide">Booking alerts</h2>
  {alert&&!alert.configured&&<p className="hint wide alert-off">Email is not switched on yet. Requests still arrive here; JP is setting up the email side.</p>}
+ {alert?.lastError&&<p className="hint wide alert-off alert-err"><b>Alerts stopped sending</b> on {new Date(alert.lastError.at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}. {alert.lastError.message} Requests are still saved here. Tell JP, then press Send me a test to check it is fixed.</p>}
  <label className="wide">Email me new requests at<input type="email" value={alertDraft} placeholder={content.email||'you@example.com'} onChange={e=>setAlertDraft(e.target.value)}/></label>
  <p className="hint wide">Leave blank to use your business email{content.email?` (${content.email})`:''}. Hit reply on an alert and it goes straight to the customer, when they gave an email.</p>
  <div className="alert-actions wide"><button type="button" disabled={alertBusy} onClick={saveAlert}>Save</button><button type="button" className="ghost" disabled={alertBusy||!alert?.configured} onClick={testAlert}>Send me a test</button><span className="cust-msg">{alertMsg}</span></div>

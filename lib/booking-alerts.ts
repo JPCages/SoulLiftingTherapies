@@ -1,8 +1,17 @@
-import {getSetting,readSiteContent,type NewBookingRequest} from './db';
+import {getSetting,setSetting,readSiteContent,type NewBookingRequest} from './db';
 import {sendEmail,esc,type EmailResult} from './email';
 import {siteUrl} from './seo';
 
 export const ALERT_EMAIL_KEY='booking_alert_email';
+// The last failed alert, so the portal can say alerts have stopped instead of
+// failing silently (a Gmail app password is revoked when the password changes).
+export const ALERT_ERROR_KEY='booking_alert_last_error';
+
+async function remember(r:EmailResult){
+  if(r.ok)await setSetting(ALERT_ERROR_KEY,null).catch(()=>{});
+  else if(r.reason==='failed')await setSetting(ALERT_ERROR_KEY,`${new Date().toISOString()}|${r.detail??'Unknown error'}`).catch(()=>{});
+  return r;
+}
 
 // Where alerts go: the address Emma set in the portal, else her public email.
 export async function alertAddress():Promise<string|null>{
@@ -45,11 +54,11 @@ export async function notifyNewBooking(r:NewBookingRequest):Promise<EmailResult>
   <p style="margin:18px 0 6px;color:#5d6d69">Nothing is booked until you confirm it. Check Fresha, then reply to the customer.</p>
   <p style="margin:0"><a href="${esc(portalLink())}" style="color:#00544d;font-weight:bold">Open your portal</a></p>
 </div>`;
-  return sendEmail({to,subject:`New booking request: ${r.treatment} — ${r.name}`,text,html,replyTo:r.email});
+  return remember(await sendEmail({to,subject:`New booking request: ${r.treatment} — ${r.name}`,text,html,replyTo:r.email}));
 }
 
 export async function sendTestAlert(to:string):Promise<EmailResult>{
   const text=`This is a test from your website.\n\nWhen a customer sends a booking request, the details will arrive at this address.\n\nOpen your portal: ${portalLink()}`;
   const html=`<div style="font-family:Arial,sans-serif;font-size:15px;color:#173235"><p><b>This is a test from your website.</b></p><p>When a customer sends a booking request, the details will arrive at this address.</p><p><a href="${esc(portalLink())}" style="color:#00544d;font-weight:bold">Open your portal</a></p></div>`;
-  return sendEmail({to,subject:'Test: booking alerts are working',text,html});
+  return remember(await sendEmail({to,subject:'Test: booking alerts are working',text,html}));
 }

@@ -1,9 +1,15 @@
 import {isAdmin} from '@/lib/auth';
 import {getSetting,setSetting} from '@/lib/db';
 import {emailConfigured} from '@/lib/email';
-import {ALERT_EMAIL_KEY,alertAddress,sendTestAlert} from '@/lib/booking-alerts';
+import {ALERT_EMAIL_KEY,ALERT_ERROR_KEY,alertAddress,sendTestAlert} from '@/lib/booking-alerts';
 
 const valid=(e:string)=>/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e);
+async function lastError(){
+  const v=await getSetting(ALERT_ERROR_KEY);
+  if(!v)return null;
+  const i=v.indexOf('|');
+  return {at:v.slice(0,i),message:v.slice(i+1)};
+}
 
 // GET: where alerts go and whether email is switched on.
 export async function GET(){
@@ -12,6 +18,7 @@ export async function GET(){
     email:(await getSetting(ALERT_EMAIL_KEY))??'',
     effective:await alertAddress(),
     configured:emailConfigured(),
+    lastError:await lastError(),
   });
 }
 
@@ -29,7 +36,7 @@ export async function PUT(request:Request){
 // POST: send a test alert to the saved address.
 export async function POST(){
   if(!(await isAdmin()))return Response.json({error:'Admin sign-in required'},{status:401});
-  if(!emailConfigured())return Response.json({error:'Email is not switched on yet. JP needs to add the email key in Railway.'},{status:503});
+  if(!emailConfigured())return Response.json({error:'Email is not switched on yet. The mailbox settings still need adding in Railway.'},{status:503});
   const to=await alertAddress();
   if(!to)return Response.json({error:'Add an email address first.'},{status:400});
   const r=await sendTestAlert(to);

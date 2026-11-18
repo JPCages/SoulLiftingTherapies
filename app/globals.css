@@ -816,3 +816,4 @@ button.luxury-treatment-card { width:100%; padding:0; font:inherit; text-align:l
 .alert-card .alert-actions button.ghost{background:transparent;color:var(--teal)}
 .alert-card .alert-actions button:disabled{opacity:.5;cursor:default}
 .alert-card .alert-off{background:#f6efe1;border:1px solid #e4dac6;border-radius:9px;padding:10px 12px;color:#6b5528}
+.alert-card .alert-err{background:#fbecea;border-color:#e8c4bf;color:#7a2a22}
