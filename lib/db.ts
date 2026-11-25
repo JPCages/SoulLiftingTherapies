@@ -202,6 +202,14 @@ export async function createBookingRequest(r:NewBookingRequest):Promise<BookingR
     [r.name,r.email,r.phone,r.treatment,r.location,r.preferences,r.notes,clientId,r.customerId]);
   return rows[0] as BookingRequest;
 }
+// A signed-in customer's own recent requests, for their account page. Only the
+// fields they need to see; never anyone else's.
+export type CustomerRequest={id:number;treatment:string;location:string;status:BookingStatus;created_at:string};
+export async function listRequestsForCustomer(customerId:number,limit=5):Promise<CustomerRequest[]>{
+  await bookingsReady();
+  const {rows}=await pool().query('SELECT id,treatment,location,status,created_at FROM booking_requests WHERE customer_id=$1 ORDER BY created_at DESC LIMIT $2',[customerId,limit]);
+  return rows as CustomerRequest[];
+}
 export type BookingRow=BookingRequest&{client_name:string|null};
 export async function listBookingRequests(status?:string):Promise<BookingRow[]>{
   await bookingsReady();

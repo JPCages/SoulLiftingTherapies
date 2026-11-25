@@ -10,6 +10,8 @@ export default function Login(){
   const [mode,setMode]=useState<'signin'|'register'>('signin');
   const [error,setError]=useState('');const [busy,setBusy]=useState(false);
   useEffect(()=>{fetch('/api/content').then(r=>r.ok?r.json():null).then(x=>x&&setContent(x)).catch(()=>{})},[]);
+  // Already signed in: go straight to the account (or Emma's desk) instead of asking again.
+  useEffect(()=>{fetch('/api/auth/me').then(r=>r.ok?r.json():null).then(m=>{if(m?.role==='admin')location.replace('/portal');else if(m?.role==='customer')location.replace('/account')}).catch(()=>{})},[]);
 
   async function submit(e:FormEvent<HTMLFormElement>){
     e.preventDefault();setBusy(true);setError('');

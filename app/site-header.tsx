@@ -13,6 +13,16 @@ import type {SiteContent} from '@/lib/site-content';
 export default function SiteHeader({content,desktopOnly=false,onSignOut,overlay=false}:{content:SiteContent;desktopOnly?:boolean;onSignOut?:()=>void;overlay?:boolean}){
   const [solid,setSolid]=useState(!overlay);
   const [open,setOpen]=useState(false);
+  // Every page asks who is signed in, so a signed-in visitor keeps seeing their
+  // account (or Emma her desk) and a way out, wherever they go on the site.
+  const [role,setRole]=useState<'admin'|'customer'|null>(onSignOut?'customer':null);
+  useEffect(()=>{
+    let live=true;
+    fetch('/api/auth/me').then(r=>r.ok?r.json():null).then(m=>{if(live&&m)setRole(m.role??null)}).catch(()=>{});
+    return ()=>{live=false};
+  },[]);
+  const signOut=onSignOut??(async()=>{await fetch('/api/auth/logout',{method:'POST'}).catch(()=>{});location.href='/';});
+  const home=role==='admin'?{href:'/portal',label:'Your desk'}:{href:'/account',label:'My account'};
   useEffect(()=>{
     if(!overlay)return;
     const on=()=>setSolid(window.scrollY>60);
@@ -33,8 +43,8 @@ export default function SiteHeader({content,desktopOnly=false,onSignOut,overlay=
         <Link className="sitenav-link" href="/services">Treatments</Link>
         <Link className="sitenav-link" href="/#how">How booking works</Link>
         <Link className="sitenav-link" href="/#find">Find us</Link>
-        {onSignOut
-          ? <><Link className="sitenav-link" href="/account">My account</Link><button type="button" className="site-btn line" onClick={onSignOut}>Sign out</button></>
+        {role
+          ? <><Link className="sitenav-link" href={home.href}>{home.label}</Link><button type="button" className="site-btn line" onClick={signOut}>Sign out</button></>
           : <Link className="site-btn line" href="/login">Log in</Link>}
         <Link className="site-btn solid" href="/book">Book</Link>
       </nav>
@@ -46,8 +56,8 @@ export default function SiteHeader({content,desktopOnly=false,onSignOut,overlay=
       <Link href="/services" onClick={close}>Treatments</Link>
       <Link href="/#how" onClick={close}>How booking works</Link>
       <Link href="/#find" onClick={close}>Find us</Link>
-      {onSignOut
-        ? <><Link href="/account" onClick={close}>My account</Link><button type="button" onClick={()=>{close();onSignOut()}}>Sign out</button></>
+      {role
+        ? <><Link href={home.href} onClick={close}>{home.label}</Link><button type="button" onClick={()=>{close();signOut()}}>Sign out</button></>
         : <Link href="/login" onClick={close}>Log in</Link>}
     </nav>}
   </header>;
