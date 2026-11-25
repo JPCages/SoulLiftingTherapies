@@ -2,6 +2,7 @@
 import {FormEvent,useEffect,useState} from 'react';
 import {defaultSiteContent,type SiteContent} from '@/lib/site-content';
 import SiteHeader from '../site-header';
+import SiteFooter from '../site-footer';
 import Image from 'next/image';
 
 export default function Login(){
@@ -23,7 +24,7 @@ export default function Login(){
     setError(out.error||'Something went wrong. Please try again.');setBusy(false);
   }
 
-  return <><SiteHeader content={content}/><main className="login"><section>
+  return <><SiteHeader content={content}/><main className="login site-lux"><section>
     <div className="brand-lockup"><span className="brand-mark lg"><Image src="/brand/logo-horizontal.webp" alt={content.businessName} width={1200} height={498} priority/></span></div>
     <p className="eyebrow">{content.loginEyebrow}</p>
     <h1>{mode==='register'?'Create your account.':content.loginHeading}</h1>
@@ -37,5 +38,5 @@ export default function Login(){
       <button className="primary" disabled={busy}>{busy?'Please wait…':mode==='register'?'Create account':'Sign in'}</button>
     </form>
     <p className="login-switch">{mode==='signin'?<>New here? <button type="button" onClick={()=>{setMode('register');setError('')}}>Create an account</button></>:<>Already have an account? <button type="button" onClick={()=>{setMode('signin');setError('')}}>Sign in</button></>}</p>
-  </section></main></>;
+  </section></main><SiteFooter content={content}/></>;
 }

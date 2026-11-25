@@ -1011,3 +1011,140 @@ button.luxury-treatment-card { width:100%; padding:0; font:inherit; text-align:l
 .todo .todo-q{font-weight:400}
 .todo .todo-q b{font-weight:700}
 .todo .todo-q .hint{font-weight:400}
+
+/* ===================================================================
+   Inner pages in the high-end look (treatments, booking, sign-in,
+   account). Same ivory ground, teal, gold labels, Cormorant + Jost,
+   square buttons. Scoped to .site-lux so the portal is untouched.
+   =================================================================== */
+body:has(.site-lux){background:var(--lux-ivory)}
+
+/* header on every page: square buttons, phone menu, two-line name */
+.sitebar{background:var(--lux-ivory);border-bottom-color:var(--lux-line)}
+.sitebar .site-btn{border-radius:0;border:1px solid transparent;padding:13px 22px;font:500 12px/1 var(--lux-body);letter-spacing:.18em;text-transform:uppercase}
+.sitebar:not(.sitebar-overlay) .site-btn.solid{background:var(--lux-teal);border-color:var(--lux-teal);color:#fff}
+.sitebar:not(.sitebar-overlay) .site-btn.line{border-color:var(--lux-teal);color:var(--lux-teal)}
+.sitebar .sitemark-words span{font:500 .58rem/1.4 var(--lux-body);letter-spacing:.2em}
+.sitemenu button{padding:14px 0;border:0;border-top:1px solid var(--lux-line);background:none;text-align:left;color:#173235;font:400 13px/1 var(--lux-body);letter-spacing:.18em;text-transform:uppercase;cursor:pointer}
+@media(max-width:860px){
+  .sitebar .sitebar-in{flex-wrap:nowrap;gap:10px}
+  .sitebar .sitenav{margin-left:auto;gap:8px}
+  .sitebar .site-btn.line{display:none}
+  .sitebar .site-btn{padding:12px 16px}
+  .sitebar .sitemark-words b{white-space:normal;font-size:.9rem;line-height:1.15;max-width:9.5em}
+  .sitebar .sitemark-words span{display:none}
+  .sitebar:not(.sitebar-overlay) .sitemenu-btn{border-color:var(--lux-teal);color:var(--lux-teal)}
+}
+#treatments,#how,#find{scroll-margin-top:90px}
+
+/* shared page furniture */
+.site-lux .eyebrow,.site-lux .label{color:var(--lux-gold);font:500 12px/1.3 var(--lux-body);letter-spacing:.24em;text-transform:uppercase}
+.site-lux h1,.site-lux h2,.site-lux h3,.site-lux legend{font-family:var(--lux-display);font-weight:400;letter-spacing:0}
+.site-lux .primary{display:inline-block;border-radius:0;border:1px solid var(--lux-teal);background:var(--lux-teal);color:#fff;padding:17px 30px;font:500 12px/1 var(--lux-body);letter-spacing:.2em;text-transform:uppercase;text-align:center;cursor:pointer}
+.site-lux .primary:hover{background:var(--lux-teal-2)}
+.site-lux input,.site-lux select,.site-lux textarea{border-radius:0;border:1px solid var(--lux-line);background:#fff;font:300 16px/1.4 var(--lux-body);color:var(--lux-ink)}
+.site-lux input:focus,.site-lux select:focus,.site-lux textarea:focus{outline:none;border-color:var(--lux-teal)}
+.lux-pagehead{max-width:1180px;margin:0 auto;padding:72px 22px 28px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px}
+.lux-pagehead h1{margin:0;color:var(--lux-ink);font:300 clamp(2.6rem,5vw,4rem)/1.05 var(--lux-display)}
+
+/* treatments */
+.treatments-app.site-lux{background:var(--lux-ivory);color:var(--lux-ink);padding-bottom:0}
+.treatments-app.site-lux .treatment-tabs{position:sticky;top:71px;z-index:9;max-width:1180px;margin:0 auto;justify-content:center;gap:6px 28px;flex-wrap:wrap;padding:14px 22px;background:var(--lux-ivory);border-bottom:1px solid var(--lux-line)}
+.treatments-app.site-lux .treatment-tabs button{border:0;border-bottom:1px solid transparent;border-radius:0;background:none;box-shadow:none;padding:8px 0;color:var(--lux-muted);font:400 12px/1 var(--lux-body);letter-spacing:.18em;text-transform:uppercase;cursor:pointer}
+.treatments-app.site-lux .treatment-tabs button.active{color:var(--lux-teal);border-bottom-color:var(--lux-gold)}
+.treatments-app.site-lux .catalogue-list{max-width:1180px;margin:0 auto;padding:40px 22px 72px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 48px}
+.treatments-app.site-lux .catalogue-intro{grid-column:1/-1;margin:0 0 24px;padding:0;max-width:none;text-align:left;border-radius:0;min-height:0}
+.treatments-app.site-lux .catalogue-intro h2{margin:0 0 6px;color:var(--lux-ink);font:300 clamp(2rem,3.4vw,2.8rem)/1.1 var(--lux-display)}
+.treatments-app.site-lux .catalogue-intro p{margin:0;color:var(--lux-muted);font-size:16px}
+.treatments-app.site-lux .catalogue-intro.has-banner{display:flex;flex-direction:column;justify-content:flex-end;min-height:300px;padding:36px;background-size:cover;color:#fff}
+.treatments-app.site-lux .catalogue-intro.has-banner h2{color:#fff}
+.treatments-app.site-lux .catalogue-intro.has-banner p{color:rgba(255,255,255,.88)}
+.treatments-app.site-lux .luxury-treatment-card{grid-template-columns:120px minmax(0,1fr) 20px;min-height:0;height:auto;padding:22px 0;gap:0;background:none;border:0;border-top:1px solid var(--lux-line);border-radius:0;box-shadow:none;text-align:left;cursor:pointer;color:var(--lux-ink)}
+.treatments-app.site-lux .treatment-photo{width:120px;height:120px;border-radius:0}
+.treatments-app.site-lux .treatment-copy{padding:2px 12px 0 20px;gap:4px}
+.treatments-app.site-lux .treatment-copy strong{margin:0 0 4px;font:400 1.45rem/1.15 var(--lux-display);text-transform:none}
+.treatments-app.site-lux .card-desc{color:var(--lux-muted);font-size:14px;line-height:1.5}
+.treatments-app.site-lux .duration{color:var(--lux-muted);font-size:12px;letter-spacing:.14em;text-transform:uppercase}
+.treatments-app.site-lux .price{color:var(--lux-gold);font:400 1.35rem/1.2 var(--lux-display)}
+.treatments-app.site-lux .chevron{align-self:center;color:var(--lux-gold)}
+.treatments-app.site-lux .catalogue-help{max-width:none;margin:0;padding:72px 22px;border:0;border-radius:0;background:var(--lux-sand);text-align:center}
+.treatments-app.site-lux .catalogue-help p{margin:0 0 22px;font:300 clamp(1.7rem,3vw,2.4rem)/1.2 var(--lux-display);color:var(--lux-ink)}
+.treatments-app.site-lux .catalogue-help a{border-radius:0;background:var(--lux-teal);padding:17px 30px;font:500 12px/1 var(--lux-body);letter-spacing:.2em;text-transform:uppercase}
+.treatments-app.site-lux .detail-sheet{border-radius:0;background:var(--lux-ivory)}
+.treatments-app.site-lux .detail-cat{color:var(--lux-gold);font:500 12px/1.3 var(--lux-body);letter-spacing:.24em;text-transform:uppercase}
+.treatments-app.site-lux .detail-body h2{font:400 2rem/1.1 var(--lux-display)}
+.treatments-app.site-lux .detail-desc,.treatments-app.site-lux .detail-note{color:var(--lux-muted);font-size:15px;line-height:1.6}
+
+/* booking */
+.booking-page.site-lux{max-width:none;min-height:0;padding:0 0 88px;background:var(--lux-ivory)}
+.booking-page.site-lux .page-hero{max-width:760px;margin:0 auto;padding:72px 22px 36px;text-align:center}
+.booking-page.site-lux .page-hero h1{margin:14px 0;color:var(--lux-ink);font:300 clamp(2.6rem,5vw,4rem)/1.05 var(--lux-display)}
+.booking-page.site-lux .page-hero p{color:var(--lux-muted);font-size:17px;line-height:1.65}
+.booking-page.site-lux .booking{max-width:760px;margin:0 auto;padding:0 22px;gap:20px}
+.booking-page.site-lux .booking fieldset{border:1px solid var(--lux-line);border-radius:0;background:#fff;padding:26px 26px 28px}
+.booking-page.site-lux .booking legend{padding:0 10px;color:var(--lux-ink);font-size:1.5rem}
+.booking-page.site-lux .booking select,.booking-page.site-lux .booking .grid input,.booking-page.site-lux .booking textarea{border-radius:0;border-color:var(--lux-line)}
+.booking-page.site-lux .booking label,.booking-page.site-lux .booking .grid label{color:var(--lux-muted);font:400 13px/1.4 var(--lux-body);letter-spacing:.04em}
+.booking-page.site-lux .pick{border-radius:0;border:1px solid var(--lux-line);background:var(--lux-ivory);padding:11px 16px;font:400 13px/1 var(--lux-body);letter-spacing:.06em}
+.booking-page.site-lux .pick.selected{background:var(--lux-teal);border-color:var(--lux-teal);color:#fff}
+.booking-page.site-lux .note,.booking-page.site-lux .booking-contact{color:var(--lux-muted);font-size:14px;text-align:center}
+.booking-page.site-lux .booking-contact a{color:var(--lux-teal);font-weight:500}
+.booking-page.site-lux .booking>.primary{padding:20px}
+.booking-page.site-lux .login-error{border-radius:0;background:#fbeceb;color:#8a2a24}
+.booking-page.success.site-lux{max-width:760px;margin:0 auto;padding:96px 22px;align-items:center;text-align:center}
+.booking-page.success.site-lux h1{color:var(--lux-ink);font:300 clamp(2.4rem,5vw,3.6rem)/1.05 var(--lux-display)}
+
+/* sign-in */
+.login.site-lux{min-height:0;padding:88px 22px 104px;background:var(--lux-teal);color:#fff}
+.login.site-lux>section{max-width:480px;margin:0 auto}
+.login.site-lux .brand-lockup{display:none}
+.login.site-lux .eyebrow{color:var(--lux-gold-light);text-align:center}
+.login.site-lux h1{margin:14px 0;color:#fff;text-align:center;font:300 clamp(2.4rem,5vw,3.4rem)/1.05 var(--lux-display)}
+.login.site-lux h1+p{text-align:center;color:rgba(255,255,255,.82);line-height:1.6}
+.login.site-lux .login-tabs{gap:0;margin:32px 0 24px;border-bottom:1px solid rgba(255,255,255,.2)}
+.login.site-lux .login-tabs button{border:0;border-bottom:1px solid transparent;border-radius:0;background:none;color:rgba(255,255,255,.7);padding:14px 0;font:400 12px/1 var(--lux-body);letter-spacing:.2em;text-transform:uppercase}
+.login.site-lux .login-tabs button.active{background:none;color:#fff;border-bottom-color:var(--lux-gold-light)}
+.login.site-lux form label{display:block;color:rgba(255,255,255,.8);font:400 13px/1.4 var(--lux-body);letter-spacing:.06em}
+.login.site-lux input{margin:8px 0 18px;padding:14px;border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.96)}
+.login.site-lux .primary{width:100%;background:var(--lux-cream);border-color:var(--lux-cream);color:var(--lux-teal)}
+.login.site-lux .login-error{border-radius:0}
+.login.site-lux .login-switch{text-align:center;color:rgba(255,255,255,.75)}
+
+/* account (signed in) */
+.account.site-lux{background:var(--lux-ivory);color:var(--lux-ink)}
+.account.site-lux .apphead{background:var(--lux-ivory);border-bottom-color:var(--lux-line)}
+.account.site-lux .apphead b{font-family:var(--lux-display);letter-spacing:.14em;text-transform:uppercase}
+.account.site-lux .account-hero{border-radius:0}
+.account.site-lux .account-hero h1{color:var(--lux-ink);font:300 2.8rem/1.05 var(--lux-display)}
+.account.site-lux .account-hero p{font-family:var(--lux-body)}
+.account.site-lux .feeling,.account.site-lux .account-grid article,.account.site-lux .journey{border-radius:0;border-color:var(--lux-line);box-shadow:none;background:#fff}
+.account.site-lux .feeling-grid button{border-radius:0;border-color:var(--lux-line);background:var(--lux-ivory)}
+.account.site-lux .feeling h2,.account.site-lux .journey h2{font-size:1.5rem}
+.account.site-lux .appointment b,.account.site-lux .score strong,.account.site-lux .points strong{font-family:var(--lux-display)}
+.account.site-lux .appointment a{color:var(--lux-teal);font:500 12px/1 var(--lux-body);letter-spacing:.18em;text-transform:uppercase}
+.account.site-lux .points{border-radius:0;background:var(--lux-teal);box-shadow:none}
+.account.site-lux .points>span{color:var(--lux-gold-light)}
+.account.site-lux .bottomnav{background:rgba(251,248,242,.97);border-top-color:var(--lux-line)}
+.account.site-lux .bottomnav a:first-child{color:var(--lux-teal)}
+
+@media(max-width:760px){
+  .lux-pagehead{padding:48px 20px 20px}
+  .treatments-app.site-lux .treatment-tabs{top:65px;justify-content:flex-start;flex-wrap:nowrap;overflow-x:auto;gap:22px;padding:12px 20px}
+  .treatments-app.site-lux .treatment-tabs button{flex:0 0 auto}
+  .treatments-app.site-lux .catalogue-list{grid-template-columns:1fr;padding:28px 20px 56px}
+  .treatments-app.site-lux .catalogue-intro.has-banner{min-height:200px;padding:24px}
+  .treatments-app.site-lux .luxury-treatment-card{grid-template-columns:92px minmax(0,1fr) 16px;padding:18px 0}
+  .treatments-app.site-lux .treatment-photo{width:92px;height:92px}
+  .treatments-app.site-lux .treatment-copy{padding-left:16px}
+  .treatments-app.site-lux .treatment-copy strong{font-size:1.25rem}
+  .booking-page.site-lux .page-hero{padding:48px 20px 24px}
+  .booking-page.site-lux .booking{padding:0 16px}
+  .booking-page.site-lux .booking fieldset{padding:20px 16px 22px}
+  .login.site-lux{padding:56px 20px 72px}
+  .lux-hero-img{object-position:64% 40%}
+}
+.booking-page.site-lux .eyebrow,.login.site-lux .eyebrow{font:500 12px/1.3 var(--lux-body);letter-spacing:.24em}
+.booking-page.site-lux .eyebrow{color:var(--lux-gold)}
+.sitebar button.site-btn.line{background:transparent;cursor:pointer}
+.account.site-lux .signout{border-radius:0;border:1px solid var(--lux-teal);background:transparent;color:var(--lux-teal);padding:10px 14px;font:500 11px/1 var(--lux-body);letter-spacing:.16em;text-transform:uppercase}
+@media(min-width:860px){.account.site-lux{padding-bottom:0}.account.site-lux .points{margin-bottom:56px}}

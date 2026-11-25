@@ -4,8 +4,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import type {SiteContent} from '@/lib/site-content';
 
-// One header for every page. On the app-style pages (treatments, account) it is
-// hidden on phones, where those pages keep their own compact app chrome.
+// One header for every page. On the signed-in account page it is hidden on
+// phones, where that page keeps its own compact app chrome.
 // When onSignOut is given the page knows the visitor is signed in, so the
 // header offers a way out instead of a way in.
 // overlay: the homepage version, which floats over the full-screen photo and
@@ -38,20 +38,17 @@ export default function SiteHeader({content,desktopOnly=false,onSignOut,overlay=
           : <Link className="site-btn line" href="/login">Log in</Link>}
         <Link className="site-btn solid" href="/book">Book</Link>
       </nav>
-      {overlay&&<button type="button" className="sitemenu-btn" aria-label={open?'Close menu':'Open menu'} aria-expanded={open} onClick={()=>setOpen(o=>!o)}>
+      <button type="button" className="sitemenu-btn" aria-label={open?'Close menu':'Open menu'} aria-expanded={open} onClick={()=>setOpen(o=>!o)}>
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">{open?<path d="M4 4l12 12M16 4L4 16"/>:<path d="M2 5h16M2 10h16M2 15h16"/>}</svg>
-      </button>}
-      {!overlay&&<nav className="sitesub" aria-label="Sections">
-        <Link href="/services">Treatments</Link>
-        <Link href="/#how">How booking works</Link>
-        <Link href="/#find">Find us</Link>
-      </nav>}
+      </button>
     </div>
-    {overlay&&open&&<nav className="sitemenu" aria-label="Menu">
+    {open&&<nav className="sitemenu" aria-label="Menu">
       <Link href="/services" onClick={close}>Treatments</Link>
       <Link href="/#how" onClick={close}>How booking works</Link>
       <Link href="/#find" onClick={close}>Find us</Link>
-      <Link href="/login" onClick={close}>Log in</Link>
+      {onSignOut
+        ? <><Link href="/account" onClick={close}>My account</Link><button type="button" onClick={()=>{close();onSignOut()}}>Sign out</button></>
+        : <Link href="/login" onClick={close}>Log in</Link>}
     </nav>}
   </header>;
 }

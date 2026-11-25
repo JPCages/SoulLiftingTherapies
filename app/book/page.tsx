@@ -37,7 +37,7 @@ export default function Book() {
     setError(out.error || 'Something went wrong. Please call Emma instead.'); setBusy(false);
   }
 
-  if (sent) return <><SiteHeader content={copy}/><main className="booking-page success">
+  if (sent) return <><SiteHeader content={copy}/><main className="booking-page success site-lux">
     <p className="eyebrow">{copy.bookingRequestEyebrow}</p>
     <h1>{copy.bookingRequestSuccessHeading}</h1>
     <p>{copy.bookingRequestSuccessBody}</p>
@@ -45,7 +45,7 @@ export default function Book() {
     <a className="primary" href="/services">Back to treatments</a>
   </main><SiteFooter content={copy}/></>;
 
-  return <><SiteHeader content={copy}/><main className="booking-page">
+  return <><SiteHeader content={copy}/><main className="booking-page site-lux">
     <section className="page-hero">
       <p className="eyebrow">{copy.bookingRequestEyebrow}</p>
       <h1>{copy.bookingRequestHeading}</h1>
