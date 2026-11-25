@@ -1184,3 +1184,12 @@ body:has(.site-lux){background:var(--lux-ivory)}
   .login.site-lux .login-photo{flex:none;min-height:0;height:34svh}
   .login.site-lux>section{padding:48px 20px 64px}
 }
+
+/* Portal: says when changes are not live, with a save bar that stays in view on long pages */
+.admin-dirtybar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:50;display:flex;align-items:center;gap:16px;padding:10px 10px 10px 20px;border-radius:999px;background:#0E3B37;color:#fff;box-shadow:0 10px 30px rgba(0,0,0,.25);font-weight:600;font-size:.9rem;max-width:calc(100vw - 24px);box-sizing:border-box}
+.admin-dirtybar button{border:0;border-radius:999px;padding:11px 18px;background:#F4EBDD;color:#0E3B37;font-weight:700;cursor:pointer;white-space:nowrap}
+.admin-save span.is-dirty{color:#8a4b12;font-weight:700}
+.admin-save button.is-dirty{box-shadow:0 0 0 3px rgba(217,188,133,.65)}
+.admin-shell h1,.admin-shell h2{font-family:var(--lux-display);font-weight:400}
+@media(max-width:760px){.admin-dirtybar{left:12px;right:12px;transform:none;bottom:12px;justify-content:space-between;font-size:.82rem}}
+.admin-workspace{padding-bottom:110px}

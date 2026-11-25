@@ -1,7 +1,7 @@
 import {createBookingRequest} from '@/lib/db';
 import {currentCustomerId} from '@/lib/customer-auth';
 import {clientIp,createRateLimiter} from '@/lib/rate-limit';
-import {notifyNewBooking} from '@/lib/booking-alerts';
+import {notifyNewBooking,confirmToCustomer} from '@/lib/booking-alerts';
 
 // Per-IP throttle on successful sends: 8 per hour. See lib/rate-limit.ts.
 const bookingLimiter=createRateLimiter({limit:8,windowMs:60*60*1000});
@@ -37,5 +37,8 @@ export async function POST(request:Request){
   // The request is saved first; the alert is a courtesy and can never fail it.
   const sent=await notifyNewBooking(req).catch(()=>null);
   if(sent&&!sent.ok&&sent.reason==='failed')console.error('Booking alert email failed:',sent.detail);
+  // And a copy to the customer, if they gave an email. Never fails the request either.
+  const copy=await confirmToCustomer(req).catch(()=>null);
+  if(copy&&!copy.ok&&copy.reason==='failed')console.error('Customer confirmation email failed:',copy.detail);
   return Response.json({ok:true});
 }
