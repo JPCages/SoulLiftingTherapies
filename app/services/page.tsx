@@ -5,6 +5,7 @@ import { defaultSiteContent, type SiteContent } from '@/lib/site-content';
 import type { Service } from '@/lib/sandbox-data';
 import SiteHeader from '../site-header';
 import SiteFooter from '../site-footer';
+import PageHero from '../page-hero';
 
 // Fallback photos by category name (used only when no photo has been uploaded).
 const images:Record<string,string>={Massage:'/images/room-forest.jpeg','Facials & advanced skin':'/images/lymphflo.png','Lycon waxing':'/images/wax-underarm.jpg','Eyes & lashes':'/images/emma.jpeg',Cryotherapy:'/images/room-shelf.jpeg','Holistic treatments':'/images/room-forest.jpeg'};
@@ -19,8 +20,8 @@ export default function Services(){
   if(!category) return null;
   const photoFor=(s:Service)=>s.image||category.image||images[category.name]||'/images/room-forest.jpeg';
   const posFor=(s:Service)=>`center ${s.imagePos??category.imagePos??50}%`;
-  return <main className="treatments-app site-lux"><SiteHeader content={content}/>
-    <header className="lux-pagehead"><p className="lux-label">Treatment menu</p><h1>{content.servicesTitle||'Treatments'}</h1></header>
+  return <main className="treatments-app site-lux"><SiteHeader content={content} overlay/>
+    <PageHero image={content.servicesHeroImage} label={content.homeMenuEyebrow||'Treatment menu'} title={content.servicesTitle||'Treatments'} alt={`${content.businessName} treatment`}/>
     <nav className="treatment-tabs" aria-label="Treatment categories">{content.categories.map(c=><button key={c.name} className={active===c.name?'active':''} onClick={()=>setActive(c.name)}>{c.name}</button>)}</nav>
     <section className="catalogue-list" aria-live="polite">
       <div className={category.banner?'catalogue-intro has-banner':'catalogue-intro'} style={category.banner?{backgroundImage:`linear-gradient(to bottom,rgba(4,32,34,.1) 0%,rgba(4,32,34,.22) 45%,rgba(4,32,34,.72) 100%),url('${category.banner}')`,backgroundPosition:`center ${category.bannerPos??50}%`}:undefined}><h2>{category.name}</h2><p>{category.short}</p></div>

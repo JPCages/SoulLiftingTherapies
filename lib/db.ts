@@ -1,5 +1,6 @@
 import {Pool} from 'pg';
 import {withDefaults,type SiteContent} from './site-content';
+import {applyLaunchLayout,LAUNCH_LAYOUT_KEY} from './launch-layout';
 
 const globalDb=globalThis as unknown as {soulPool?:Pool};
 // Decide SSL from the connection string, not NODE_ENV: local, and Railway's
@@ -22,7 +23,26 @@ function once(key:string,fn:()=>Promise<void>):Promise<void>{
 }
 
 function ready(){return once('site_content',async()=>{await pool().query('CREATE TABLE IF NOT EXISTS site_content (id INTEGER PRIMARY KEY, content JSONB NOT NULL, updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())')})}
-export async function readSiteContent():Promise<SiteContent>{if(!process.env.DATABASE_URL)return withDefaults();await ready();const {rows}=await pool().query('SELECT content FROM site_content WHERE id=1');return withDefaults(rows[0]?.content)}
+// One-off: apply the launch photo choices to the stored content the first time
+// this version runs against a database (see lib/launch-layout.ts). Runs once per
+// database (marker in app_settings) and only fills gaps, inside one transaction.
+function launchLayoutReady(){return once('launch_layout',async()=>{
+  await ready();await settingsReady();
+  const db=await pool().connect();
+  try{
+    await db.query('BEGIN');
+    const done=await db.query('SELECT 1 FROM app_settings WHERE key=$1',[LAUNCH_LAYOUT_KEY]);
+    if(!done.rowCount){
+      const {rows}=await db.query('SELECT content FROM site_content WHERE id=1 FOR UPDATE');
+      const next=rows[0]?.content?applyLaunchLayout(rows[0].content):null;
+      if(next)await db.query('UPDATE site_content SET content=$1,updated_at=NOW() WHERE id=1',[JSON.stringify(next)]);
+      await db.query('INSERT INTO app_settings(key,value) VALUES($1,$2) ON CONFLICT(key) DO NOTHING',[LAUNCH_LAYOUT_KEY,next?'applied':'nothing to change']);
+    }
+    await db.query('COMMIT');
+  }catch(e){await db.query('ROLLBACK').catch(()=>{});throw e}
+  finally{db.release()}
+})}
+export async function readSiteContent():Promise<SiteContent>{if(!process.env.DATABASE_URL)return withDefaults();await ready();await launchLayoutReady().catch(e=>console.error('launch layout not applied',e));const {rows}=await pool().query('SELECT content FROM site_content WHERE id=1');return withDefaults(rows[0]?.content)}
 export async function writeSiteContent(content:SiteContent){await ready();await pool().query('INSERT INTO site_content(id,content,updated_at) VALUES(1,$1,NOW()) ON CONFLICT(id) DO UPDATE SET content=EXCLUDED.content,updated_at=NOW()',[JSON.stringify(content)])}
 
 // --- Image store (kept out of the SiteContent JSON so public pages stay light) ---

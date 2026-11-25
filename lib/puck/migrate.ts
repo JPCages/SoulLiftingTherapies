@@ -63,7 +63,7 @@ export function siteContentToPuck(c:SiteContent):SitePuckData{
     eyebrow:'Find us',
     heading:c.homeFindHeading??'',
     intro:c.homeFindIntro??'',
-    image:'',
+    image:'/images/emma.jpeg',
   }});
 
   content.push({type:'AccountStrip',props:{

@@ -24,7 +24,7 @@ export default function Login(){
     setError(out.error||'Something went wrong. Please try again.');setBusy(false);
   }
 
-  return <><SiteHeader content={content}/><main className="login site-lux"><section>
+  return <><SiteHeader content={content}/><main className="login site-lux">{content.loginHeroImage&&<div className="login-photo"><img src={content.loginHeroImage} alt={`${content.businessName} treatment room`}/></div>}<section>
     <div className="brand-lockup"><span className="brand-mark lg"><Image src="/brand/logo-horizontal.webp" alt={content.businessName} width={1200} height={498} priority/></span></div>
     <p className="eyebrow">{content.loginEyebrow}</p>
     <h1>{mode==='register'?'Create your account.':content.loginHeading}</h1>

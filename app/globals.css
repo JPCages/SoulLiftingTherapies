@@ -1158,3 +1158,29 @@ body:has(.site-lux){background:var(--lux-ivory)}
 @media(max-width:760px){
   .lux-hero-shade{background:linear-gradient(180deg,rgba(8,30,28,.5) 0%,rgba(8,30,28,.22) 22%,rgba(8,30,28,.66) 48%,rgba(8,30,28,.9) 100%)}
 }
+
+/* Full-screen photo banners on the inner pages, like the homepage */
+.lux-hero-page{min-height:88vh;min-height:88svh}
+.lux-hero-page .lux-hero-img{position:absolute;inset:0;width:100%;height:100%}
+.lux-hero-page .lux-hero-body{width:100%;max-width:1180px;margin:0 auto;padding:150px 22px 80px;box-sizing:border-box}
+.lux-hero-page .lux-hero-lede{max-width:600px}
+.treatments-app.site-lux .treatment-tabs{top:0;padding-top:18px}
+.treatments-app.site-lux:has(.sitebar-overlay.is-solid) .treatment-tabs{top:71px}
+.booking-page.site-lux .booking{padding-top:56px}
+
+/* sign-in: photo beside the form */
+.login.site-lux{display:flex;align-items:stretch;padding:0;min-height:calc(100svh - 71px)}
+.login.site-lux .login-photo{flex:1 1 50%;position:relative;min-height:420px}
+.login.site-lux .login-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.login.site-lux>section{flex:1 1 50%;max-width:none;margin:0;padding:96px clamp(22px,6vw,96px);display:flex;flex-direction:column;justify-content:center}
+.login.site-lux>section>*{width:100%;max-width:460px;margin-left:auto;margin-right:auto;box-sizing:border-box}
+
+@media(max-width:760px){
+  .lux-hero-page{min-height:78vh;min-height:78svh}
+  .lux-hero-page .lux-hero-body{padding:120px 22px 48px}
+  .treatments-app.site-lux:has(.sitebar-overlay.is-solid) .treatment-tabs{top:65px}
+  .booking-page.site-lux .booking{padding-top:32px}
+  .login.site-lux{flex-direction:column;min-height:0}
+  .login.site-lux .login-photo{flex:none;min-height:0;height:34svh}
+  .login.site-lux>section{padding:48px 20px 64px}
+}
