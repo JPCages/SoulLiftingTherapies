@@ -1,10 +1,11 @@
 import type {SiteContent} from '@/lib/site-content';
 import type {SitePuckData} from './config';
 
-// Build the homepage Puck document from the fields Emma has already saved.
-// This runs once, the first time the new portal is opened, and reproduces the
-// live homepage exactly — same sections, same order, same words. Her stored
-// document is never emptied: the old fields stay in place underneath.
+// Build the homepage Puck document from the fields Emma has already saved, in
+// the high-end layout: full-screen photo, welcome statement, treatment cards,
+// booking and find-us side by side with photos, then the accounts band.
+// Every word comes from her saved content. Her stored document is never
+// emptied: the old fields stay in place underneath.
 export function siteContentToPuck(c:SiteContent):SitePuckData{
   const content:SitePuckData['content']=[];
 
@@ -17,15 +18,21 @@ export function siteContentToPuck(c:SiteContent):SitePuckData{
     eyebrow:`${c.descriptor} · Lincolnshire`,
     title:c.heroTitle??'',
     accent:c.heroAccent??'',
-    lede:c.heroIntro??'',
+    lede:'',
     primaryCta:'Request an appointment',
-    secondaryCta:'See the treatment menu',
+    secondaryCta:'Explore treatments',
     trustYears:c.homeTrustYears??'',
     trustPlaces:c.homeTrustPlaces??'',
     image:c.heroImage??'',
+    mobileImage:'',
     captionTitle:c.homeHeroCaptionTitle??'',
     captionText:c.homeHeroCaptionText??'',
   }});
+
+  // The paragraph that sat under the headline becomes the welcome statement.
+  if((c.heroIntro||'').trim()){
+    content.push({type:'Welcome',props:{id:'welcome',eyebrow:`Welcome to ${c.businessName}`,text:c.heroIntro}});
+  }
 
   content.push({type:'TreatmentMenu',props:{
     id:'menu',
@@ -47,13 +54,16 @@ export function siteContentToPuck(c:SiteContent):SitePuckData{
       heading:c.homeHowHeading??'',
       intro:c.homeHowIntro??'',
       steps,
+      image:'/images/room-shelf.jpeg',
     }});
   }
 
   content.push({type:'FindUs',props:{
     id:'find',
+    eyebrow:'Find us',
     heading:c.homeFindHeading??'',
     intro:c.homeFindIntro??'',
+    image:'/images/emma.jpeg',
   }});
 
   content.push({type:'AccountStrip',props:{
@@ -62,6 +72,7 @@ export function siteContentToPuck(c:SiteContent):SitePuckData{
     heading:c.homePrivateHeading??'',
     intro:c.homePrivateIntro??'',
     ctaLabel:c.homeLoginCta??'',
+    image:'',
   }});
 
   return {root:{props:{}},content};

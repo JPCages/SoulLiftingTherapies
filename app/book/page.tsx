@@ -3,6 +3,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { defaultSiteContent, type SiteContent } from "@/lib/site-content";
 import SiteHeader from '../site-header';
 import SiteFooter from '../site-footer';
+import PageHero from '../page-hero';
 
 // Quick picks save typing on a phone; whatever is ticked is folded into one
 // preferences line alongside anything the customer writes themselves.
@@ -37,7 +38,7 @@ export default function Book() {
     setError(out.error || 'Something went wrong. Please call Emma instead.'); setBusy(false);
   }
 
-  if (sent) return <><SiteHeader content={copy}/><main className="booking-page success">
+  if (sent) return <><SiteHeader content={copy}/><main className="booking-page success site-lux">
     <p className="eyebrow">{copy.bookingRequestEyebrow}</p>
     <h1>{copy.bookingRequestSuccessHeading}</h1>
     <p>{copy.bookingRequestSuccessBody}</p>
@@ -45,12 +46,8 @@ export default function Book() {
     <a className="primary" href="/services">Back to treatments</a>
   </main><SiteFooter content={copy}/></>;
 
-  return <><SiteHeader content={copy}/><main className="booking-page">
-    <section className="page-hero">
-      <p className="eyebrow">{copy.bookingRequestEyebrow}</p>
-      <h1>{copy.bookingRequestHeading}</h1>
-      <p>{copy.bookingRequestIntro}</p>
-    </section>
+  return <><SiteHeader content={copy} overlay/><main className="booking-page site-lux">
+    <PageHero image={copy.bookingHeroImage} label={copy.bookingRequestEyebrow} title={copy.bookingRequestHeading??''} intro={copy.bookingRequestIntro} alt={`${copy.businessName} treatment room`}/>
     <form className="booking" onSubmit={submit}>
       <fieldset>
         <legend>1. Which treatment?</legend>

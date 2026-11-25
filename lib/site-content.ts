@@ -12,6 +12,9 @@ export type SiteContent = {
   // Banner images (behind headings)
   heroImage?: string;        // homepage hero
   accountHeroImage?: string; // customer account hero
+  servicesHeroImage?: string; // full-screen photo at the top of the treatments page
+  bookingHeroImage?: string;  // full-screen photo at the top of the booking page
+  loginHeroImage?: string;    // photo beside the sign-in form
 
   // Homepage copy
   homeMenuEyebrow?: string; homeMenuHeading?: string;
@@ -93,6 +96,9 @@ export const defaultSiteContent: SiteContent = {
 
   heroImage: '/images/room-forest.jpeg',
   accountHeroImage: '/images/room-forest.jpeg',
+  servicesHeroImage: '/images/room-forest.jpeg',
+  bookingHeroImage: '/images/room-shelf.jpeg',
+  loginHeroImage: '/images/room-forest.jpeg',
 
   homeMenuEyebrow: 'Treatment menu',
   homeMenuHeading: 'Choose what feels right today.',
