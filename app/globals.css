@@ -1148,3 +1148,13 @@ body:has(.site-lux){background:var(--lux-ivory)}
 .sitebar button.site-btn.line{background:transparent;cursor:pointer}
 .account.site-lux .signout{border-radius:0;border:1px solid var(--lux-teal);background:transparent;color:var(--lux-teal);padding:10px 14px;font:500 11px/1 var(--lux-body);letter-spacing:.16em;text-transform:uppercase}
 @media(min-width:860px){.account.site-lux{padding-bottom:0}.account.site-lux .points{margin-bottom:56px}}
+/* keep the homepage header see-through over the photo (the shared rules above set it solid) */
+.sitebar-overlay:not(.is-solid):not(.is-open){background:transparent;border-bottom-color:rgba(255,255,255,.18)}
+.sitebar-overlay:not(.is-solid):not(.is-open) .site-btn.line{border-color:rgba(255,255,255,.7);color:#fff}
+.sitebar-overlay:not(.is-solid):not(.is-open) .site-btn.solid{border-color:var(--lux-cream)}
+.sitebar-overlay.is-solid .site-btn.line,.sitebar-overlay.is-open .site-btn.line{border-color:var(--lux-teal);color:var(--lux-teal)}
+.sitebar-overlay.is-solid .site-btn.solid,.sitebar-overlay.is-open .site-btn.solid{border-color:var(--lux-teal)}
+.booking-page.site-lux .page-hero .eyebrow{color:var(--lux-gold)}
+@media(max-width:760px){
+  .lux-hero-shade{background:linear-gradient(180deg,rgba(8,30,28,.5) 0%,rgba(8,30,28,.22) 22%,rgba(8,30,28,.66) 48%,rgba(8,30,28,.9) 100%)}
+}
