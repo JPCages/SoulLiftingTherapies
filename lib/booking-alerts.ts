@@ -62,3 +62,32 @@ export async function sendTestAlert(to:string):Promise<EmailResult>{
   const html=`<div style="font-family:Arial,sans-serif;font-size:15px;color:#173235"><p><b>This is a test from your website.</b></p><p>When a customer sends a booking request, the details will arrive at this address.</p><p><a href="${esc(portalLink())}" style="color:#00544d;font-weight:bold">Open your portal</a></p></div>`;
   return remember(await sendEmail({to,subject:'Test: booking alerts are working',text,html}));
 }
+
+// A copy for the customer, when they gave an email address, so they know the
+// request arrived. Sent from Emma's own mailbox; replies go to her public
+// email. The wording is hers (the "after someone sends a request" text in the
+// portal), and it says plainly that nothing is booked yet.
+export async function confirmToCustomer(r:NewBookingRequest):Promise<EmailResult|null>{
+  if(!r.email)return null;
+  const c=await readSiteContent();
+  const heading=(c.bookingRequestSuccessHeading||'Request sent.').trim();
+  const body=(c.bookingRequestSuccessBody||'').trim();
+  const rows:[string,string][]=([['Treatment',r.treatment],['Where',r.location],['When suits',r.preferences]] as [string,string|null][])
+    .filter(([,v])=>v&&v.trim()) as [string,string][];
+  const phone=c.phone?.trim();
+  const text=[
+    `Hi ${r.name},`,'',heading,body,'',
+    'Your request:',...rows.map(([k,v])=>`${k}: ${v}`),'',
+    phone?`Need it sooner? Call or text ${phone}.`:'',
+    c.businessName,
+  ].filter(l=>l!==undefined).join('\n');
+  const html=`<div style="font-family:Arial,sans-serif;font-size:15px;color:#173235;max-width:560px">
+  <p style="margin:0 0 12px">Hi ${esc(r.name)},</p>
+  <p style="font-size:18px;margin:0 0 8px"><b>${esc(heading)}</b></p>
+  ${body?`<p style="margin:0 0 16px">${esc(body)}</p>`:''}
+  <table style="border-collapse:collapse;width:100%">${rows.map(([k,v])=>`<tr><td style="padding:6px 12px 6px 0;color:#5d6d69;vertical-align:top;white-space:nowrap">${esc(k)}</td><td style="padding:6px 0">${esc(v).replace(/\n/g,'<br>')}</td></tr>`).join('')}</table>
+  ${phone?`<p style="margin:18px 0 6px;color:#5d6d69">Need it sooner? Call or text <a href="tel:${esc(phone.replace(/\s/g,''))}" style="color:#00544d">${esc(phone)}</a>.</p>`:''}
+  <p style="margin:0">${esc(c.businessName)}</p>
+</div>`;
+  return sendEmail({to:r.email,subject:`${c.businessName}: we have your request`,text,html,replyTo:c.email?.trim()||null});
+}

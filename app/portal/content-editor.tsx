@@ -21,6 +21,8 @@ type BookingRow={id:number;name:string;email:string|null;phone:string;treatment:
 export default function ContentEditor(){
  const [content,setContent]=useState<SiteContent>(defaultSiteContent);
  const [status,setStatus]=useState('');
+ // What is live, to tell Emma when she has changes that are not published yet.
+ const [saved,setSaved]=useState('');
  const [section,setSection]=useState<Section>('todo');
  const [uploading,setUploading]=useState('');
  const [customers,setCustomers]=useState<CustomerRow[]>([]);
@@ -41,7 +43,14 @@ export default function ContentEditor(){
  const [alertDraft,setAlertDraft]=useState('');
  const [alertMsg,setAlertMsg]=useState('');
  const [alertBusy,setAlertBusy]=useState(false);
- useEffect(()=>{fetch('/api/content').then(r=>r.json()).then(x=>setContent(withDefaults(x))).catch(()=>{})},[]);
+ useEffect(()=>{fetch('/api/content').then(r=>r.json()).then(x=>{const d=withDefaults(x);setContent(d);setSaved(JSON.stringify(d))}).catch(()=>{})},[]);
+ const dirty=saved!==''&&JSON.stringify(content)!==saved;
+ useEffect(()=>{
+  if(!dirty)return;
+  const warn=(e:BeforeUnloadEvent)=>{e.preventDefault();e.returnValue=''};
+  window.addEventListener('beforeunload',warn);
+  return ()=>window.removeEventListener('beforeunload',warn);
+ },[dirty]);
  const loadCustomers=()=>fetch('/api/admin/customers').then(r=>r.json()).then(d=>setCustomers(d.customers||[])).catch(()=>{});
  useEffect(()=>{if(section==='loyalty')loadCustomers()},[section]);
  const loadClients=(q='')=>fetch('/api/admin/clients?q='+encodeURIComponent(q)).then(r=>r.json()).then(d=>{setClients(d.clients||[]);if(d.stats)setClientStats(d.stats)}).catch(()=>{});
@@ -107,6 +116,7 @@ export default function ContentEditor(){
   setStatus('Saving…');
   const r=await fetch('/api/content',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(doc)});
   setStatus(r.ok?'Changes published':'Could not save — please sign in again');
+  if(r.ok)setSaved(JSON.stringify(doc));
   return r.ok;
  };
  const save=async()=>{await put(content)};
@@ -140,7 +150,7 @@ export default function ContentEditor(){
  const heroField=(k:'heroImage'|'accountHeroImage'|'servicesHeroImage'|'bookingHeroImage'|'loginHeroImage',label:string)=><div className="img-field"><span className="img-field-label">{label}</span><ImageControl wide image={val(k)} label="image" busy={uploading===k} onFile={f=>handleUpload(k,f,url=>field(k,url))} onClear={()=>field(k,'')}/></div>;
  const numField=(k:keyof SiteContent,label:string)=><label key={k}>{label}<input type="number" min={1} value={(content[k] as number|undefined)??''} onChange={e=>setNum(k,e.target.value)}/></label>;
 
- return <main className="admin-shell"><aside className="admin-sidebar"><a className="admin-brand" href="/" aria-label="Soul Lifting Therapies"><span className="brand-mark emblem"><NextImage src="/brand/logo-emblem.webp" alt="Soul Lifting Therapies" width={800} height={800}/></span></a><nav>{NAV.map(([x,label])=><button className={section===x?'active':''} onClick={()=>setSection(x)} key={x}>{label}{x==='requests'&&newCount>0&&<span className="nav-badge">{newCount}</span>}</button>)}</nav><a href="/services">View customer app ↗</a></aside><section className="admin-workspace"><header><div><p className="eyebrow">Emma’s admin</p><h1>{TITLE[section]}</h1></div><div className="admin-save"><span>{status}</span>{section!=='homepage'&&section!=='requests'&&section!=='todo'&&<button onClick={save}>Save &amp; publish</button>}</div></header>
+ return <main className="admin-shell"><aside className="admin-sidebar"><a className="admin-brand" href="/" aria-label="Soul Lifting Therapies"><span className="brand-mark emblem"><NextImage src="/brand/logo-emblem.webp" alt="Soul Lifting Therapies" width={800} height={800}/></span></a><nav>{NAV.map(([x,label])=><button className={section===x?'active':''} onClick={()=>setSection(x)} key={x}>{label}{x==='requests'&&newCount>0&&<span className="nav-badge">{newCount}</span>}</button>)}</nav><a href="/services">View customer app ↗</a></aside><section className="admin-workspace">{dirty&&!['homepage','requests','todo','overview','clients'].includes(section)&&<div className="admin-dirtybar" role="status"><span>Changes not live yet</span><button onClick={save} disabled={status==='Saving…'}>{status==='Saving…'?'Saving…':'Save & publish'}</button></div>}<header><div><p className="eyebrow">Emma’s admin</p><h1>{TITLE[section]}</h1></div><div className="admin-save"><span className={dirty&&status!=='Saving…'?'is-dirty':''}>{dirty&&status!=='Saving…'?'You have changes that are not live yet':status}</span>{!['homepage','requests','todo','overview','clients'].includes(section)&&<button onClick={save} className={dirty?'is-dirty':''}>Save &amp; publish</button>}</div></header>
 
  {section==='todo'&&<TodoList key={`${content.horncastleHours??''}|${content.woodhallHours??''}`} content={content} onSavePatch={savePatch} go={(sec,anchor)=>{setSection(sec as Section);if(anchor)setTimeout(()=>document.getElementById(anchor)?.scrollIntoView({behavior:'smooth',block:'center'}),150)}}/>}
  {section==='overview'&&<div className="admin-overview"><div className="admin-stat"><span>Published treatments</span><strong>{content.categories.reduce((n,c)=>n+c.services.length,0)}</strong></div><div className="admin-stat"><span>Categories</span><strong>{content.categories.length}</strong></div><div className="admin-stat"><span>Locations</span><strong>2</strong></div><div className="admin-stat"><span>Requests needing a reply</span><strong>{newCount}</strong></div><article className="admin-card wide"><h2>Everything here is editable</h2><p>Use the menu on the left to edit the <b>homepage</b> on the page itself, <b>treatments and photos</b>, the <b>customer app</b>, the <b>booking page</b>, the <b>sign-in page</b> and your <b>business details</b>. You can also add a banner image behind each treatment heading. Press <b>Save &amp; publish</b> when you are ready for customers to see the changes.</p></article></div>}
@@ -160,7 +170,7 @@ export default function ContentEditor(){
 
  {section==='booking'&&<><div className="admin-card">{heroField('bookingHeroImage','Booking page photo (full-screen, behind the heading)')}</div><div className="admin-card admin-fields">{text('bookingRequestEyebrow','Small label above the heading')}{text('bookingRequestHeading','Booking heading')}{area('bookingRequestIntro','Booking introduction')}{area('bookingRequestNote','Note under the times (deposit, how Emma confirms)')}{text('bookingRequestSuccessHeading','Heading after someone sends a request')}{area('bookingRequestSuccessBody','Text after someone sends a request')}</div></>}
 
- {section==='login'&&<div className="admin-card">{heroField('loginHeroImage','Sign-in page photo (beside the form)')}</div>}{section==='login'&&<div className="admin-card admin-fields">{text('loginEyebrow','Label')}{text('loginHeading','Heading')}{area('loginIntro','Intro text')}{text('loginCustomerTitle','Customer button title')}{area('loginCustomerBlurb','Customer button text')}{text('loginAdminTitle','Emma button title')}{area('loginAdminBlurb','Emma button text')}</div>}
+ {section==='login'&&<div className="admin-card">{heroField('loginHeroImage','Sign-in page photo (beside the form)')}</div>}{section==='login'&&<div className="admin-card admin-fields">{text('loginEyebrow','Label')}{text('loginHeading','Heading')}{area('loginIntro','Intro text')}</div>}
 
  {section==='locations'&&<div className="admin-card admin-fields">{text('businessName','Business name')}{text('descriptor','Business descriptor')}{text('phone','Phone')}{text('email','Email')}{area('horncastle','Horncastle address')}{text('horncastleHours','Horncastle opening hours')}{area('woodhall','Woodhall Spa address')}{text('woodhallHours','Woodhall Spa opening hours')}<p className="hint wide">These appear on the homepage, in the footer and on the booking page. Leave the hours blank and none are shown.</p></div>}
  {section==='locations'&&<div className="admin-card admin-fields"><h2 className="wide">Search &amp; sharing</h2>{text('seoTitle','Homepage title in Google (about 60 characters)',true)}{area('seoDescription','Line under it in Google (about 155 characters)')}<p className="hint wide">This is what people see in search results before they click. Leave both blank to use the standard wording.</p></div>}
