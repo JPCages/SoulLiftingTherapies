@@ -817,3 +817,197 @@ button.luxury-treatment-card { width:100%; padding:0; font:inherit; text-align:l
 .alert-card .alert-actions button:disabled{opacity:.5;cursor:default}
 .alert-card .alert-off{background:#f6efe1;border:1px solid #e4dac6;border-radius:9px;padding:10px 12px;color:#6b5528}
 .alert-card .alert-err{background:#fbecea;border-color:#e8c4bf;color:#7a2a22}
+
+/* ===================================================================
+   High-end look (2026-11). Ivory ground, deep teal, gold labels,
+   Cormorant Garamond display over Jost. Applies to the homepage blocks,
+   the shared header and the footer.
+   =================================================================== */
+:root{
+  --lux-ivory:#FBF8F2; --lux-sand:#F4EEE4; --lux-line:#E3D9C8;
+  --lux-teal:#0E3B37; --lux-teal-2:#13302D; --lux-cream:#F4EBDD;
+  --lux-gold:#8A6A32; --lux-gold-light:#D9BC85; --lux-gold-pale:#E7D3A8;
+  --lux-ink:#1F2A28; --lux-muted:#5A6663;
+  --lux-display:var(--font-display),'Cormorant Garamond',Georgia,serif;
+  --lux-body:var(--font-body),'Jost',system-ui,sans-serif;
+}
+.site-lux{background:var(--lux-ivory);color:var(--lux-ink);font-family:var(--lux-body);font-weight:300}
+.lux-in{max-width:1328px;margin:0 auto;padding-inline:56px}
+.lux-label{margin:0;color:var(--lux-gold);font:500 13px/1.3 var(--lux-body);letter-spacing:.26em;text-transform:uppercase}
+.lux-label-light{color:var(--lux-gold-light)}
+.lux-h2{margin:0;font:300 clamp(2.2rem,3.8vw,3.3rem)/1.1 var(--lux-display);letter-spacing:-.005em}
+.lux-sub{margin:0;color:var(--lux-muted);font-size:17px;line-height:1.65;max-width:56ch}
+.lux-btn{display:inline-block;padding:18px 34px;font:500 13px/1 var(--lux-body);letter-spacing:.2em;text-transform:uppercase;text-align:center;transition:background .2s,color .2s}
+.lux-btn-cream{background:var(--lux-cream);color:var(--lux-teal)}
+.lux-btn-cream:hover{background:#fff;color:var(--lux-teal)}
+.lux-btn-ghost{border:1px solid rgba(255,255,255,.72);color:#fff;padding:17px 33px}
+.lux-btn-ghost:hover{background:rgba(255,255,255,.12);color:#fff}
+.lux-textlink{font:500 13px/1 var(--lux-body);letter-spacing:.2em;text-transform:uppercase;color:var(--lux-teal);border-bottom:1px solid var(--lux-teal);padding-bottom:6px}
+
+/* hero */
+.lux-hero{position:relative;min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:flex-end;background:var(--lux-teal);color:#fff;overflow:hidden}
+.lux-hero picture,.lux-hero-img{position:absolute;inset:0;width:100%;height:100%}
+.lux-hero-img{object-fit:cover;object-position:50% 40%}
+.lux-hero-shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(8,30,28,.82) 0%,rgba(8,30,28,.55) 45%,rgba(8,30,28,.15) 100%)}
+.lux-hero-body{position:relative;display:flex;flex-direction:column;gap:26px;padding:150px 56px 64px;max-width:820px}
+.lux-hero-title{margin:0;font:300 clamp(2.7rem,5.4vw,4.8rem)/1.03 var(--lux-display);letter-spacing:-.01em}
+.lux-hero-title em{font-style:italic;font-weight:400;color:var(--lux-gold-pale)}
+.lux-hero-lede{margin:0;color:rgba(255,255,255,.88);font-size:19px;line-height:1.6;max-width:560px}
+.lux-hero-cta{display:flex;flex-wrap:wrap;gap:14px;padding-top:6px}
+.lux-hero-trust{position:relative;list-style:none;margin:0;display:flex;flex-wrap:wrap;gap:10px 48px;padding:22px 56px;border-top:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.85);font-size:13px;letter-spacing:.16em;text-transform:uppercase}
+
+/* welcome */
+.lux-welcome{max-width:900px;margin:0 auto;padding:120px 56px 96px;display:flex;flex-direction:column;align-items:center;gap:24px;text-align:center}
+.lux-welcome-text{margin:0;font:300 clamp(1.7rem,2.9vw,2.5rem)/1.3 var(--lux-display)}
+
+/* treatment cards */
+.lux-menu{padding-bottom:120px}
+.lux-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:24px;border-bottom:1px solid var(--lux-line);padding-bottom:28px;margin-bottom:48px}
+.lux-head-text{display:flex;flex-direction:column;gap:14px}
+.lux-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:44px 32px}
+.lux-card{display:flex;flex-direction:column;gap:20px;color:var(--lux-ink)}
+.lux-card:hover{color:var(--lux-ink)}
+.lux-card-img{display:block;width:100%;aspect-ratio:4/5;object-fit:cover;background:var(--lux-sand);transition:opacity .25s}
+.lux-card:hover .lux-card-img{opacity:.9}
+.lux-card-blank{display:flex;align-items:center;justify-content:center;background:var(--lux-teal)}
+.lux-card-body{display:flex;flex-direction:column;gap:8px}
+.lux-card-name{font:400 32px/1.15 var(--lux-display)}
+.lux-card-short{color:var(--lux-muted);font-size:16px;line-height:1.55}
+.lux-card-go{padding-top:6px;color:var(--lux-teal);font:500 12px/1 var(--lux-body);letter-spacing:.2em;text-transform:uppercase}
+
+/* image + text splits */
+.lux-split{display:flex;flex-wrap:wrap}
+.lux-split-flip{flex-direction:row-reverse}
+.lux-split-photo{flex:1 1 560px;min-height:640px;position:relative}
+.lux-split-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.lux-split-text{flex:1 1 560px;display:flex;flex-direction:column;justify-content:center;gap:26px;padding:96px 80px}
+.lux-split-dark{background:var(--lux-teal);color:#fff}
+.lux-split-dark .lux-sub{color:rgba(255,255,255,.82)}
+.lux-split-sand{background:var(--lux-sand)}
+.lux-steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:22px;max-width:540px}
+.lux-steps li{display:flex;gap:22px;padding-top:22px;border-top:1px solid rgba(255,255,255,.18)}
+.lux-step-no{font:400 30px/1 var(--lux-display);color:var(--lux-gold-light)}
+.lux-steps b{display:block;font-weight:500;font-size:17px;margin-bottom:6px}
+.lux-steps li>span:last-child span{color:rgba(255,255,255,.78);font-size:15px;line-height:1.6}
+.lux-places{display:flex;flex-wrap:wrap;gap:32px}
+.lux-place{flex:1 1 220px;display:flex;flex-direction:column;gap:10px;padding-top:22px;border-top:1px solid #D8CBB4}
+.lux-place h3{margin:0;font:400 28px/1.2 var(--lux-display)}
+.lux-place p{margin:0;color:var(--lux-muted);font-size:15px;line-height:1.6}
+.lux-place .lux-hours{color:var(--lux-gold)}
+.lux-reach{margin:0;display:flex;flex-wrap:wrap;gap:8px 28px;font-size:15px}
+.lux-reach a{color:var(--lux-teal);font-weight:500}
+
+/* full-bleed band */
+.lux-band{position:relative;min-height:560px;display:flex;align-items:center;background:var(--lux-teal);color:#fff;overflow:hidden}
+.lux-band-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.lux-band-shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(8,30,28,.86) 0%,rgba(8,30,28,.6) 55%,rgba(8,30,28,.25) 100%)}
+.lux-band-body{position:relative;padding:96px 56px;max-width:700px;display:flex;flex-direction:column;gap:24px}
+.lux-band .lux-sub{color:rgba(255,255,255,.85)}
+.lux-loyalty{margin:0;color:var(--lux-gold-pale);font-size:15px;letter-spacing:.03em}
+
+/* footer */
+.lux-foot{background:var(--lux-teal-2);color:rgba(255,255,255,.82);padding:88px 0 40px;font:300 14px/1.6 var(--lux-body)}
+.lux-foot-cols{display:flex;flex-wrap:wrap;gap:40px 48px}
+.lux-foot-cols>div{flex:1 1 200px;display:flex;flex-direction:column;gap:8px}
+.lux-foot-cols>.lux-foot-brand{flex:2 1 300px;gap:16px}
+.lux-foot-mark{display:flex;align-items:center;gap:14px}
+.lux-foot-mark img{width:48px;height:48px;border-radius:50%}
+.lux-foot-mark b{font:500 21px/1.2 var(--lux-display);color:#fff;letter-spacing:.14em;text-transform:uppercase}
+.lux-foot-h{color:#fff;font-size:12px;font-weight:500;letter-spacing:.22em;text-transform:uppercase}
+.lux-foot a{color:rgba(255,255,255,.82)}
+.lux-foot a:hover{color:#fff}
+.lux-foot-base{margin-top:56px;padding-top:26px;border-top:1px solid rgba(255,255,255,.14);font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+
+/* header: refined everywhere, floating over the photo on the homepage */
+.sitebar .sitemark-words b{font:500 1.15rem/1.1 var(--lux-display);letter-spacing:.12em;text-transform:uppercase}
+.sitebar .sitenav{font-family:var(--lux-body);font-weight:400;letter-spacing:.14em;text-transform:uppercase;font-size:.76rem}
+.sitemenu-btn{display:none}
+.sitebar-overlay{position:fixed;left:0;right:0;top:0;background:transparent;border-bottom:1px solid rgba(255,255,255,.18);transition:background .25s,border-color .25s}
+.sitebar-overlay .sitemark-words b,.sitebar-overlay .sitenav-link{color:#fff}
+.sitebar-overlay .sitemark-words span{color:var(--lux-gold-light)}
+.sitebar-overlay .site-btn.line{border-color:rgba(255,255,255,.7);color:#fff;background:transparent}
+.sitebar-overlay .site-btn.solid{background:var(--lux-cream);color:var(--lux-teal);border-color:var(--lux-cream)}
+.sitebar-overlay.is-solid,.sitebar-overlay.is-open{background:var(--lux-ivory);border-bottom-color:var(--lux-line)}
+.sitebar-overlay.is-solid .sitemark-words b,.sitebar-overlay.is-open .sitemark-words b,
+.sitebar-overlay.is-solid .sitenav-link,.sitebar-overlay.is-open .sitenav-link{color:#173235}
+.sitebar-overlay.is-solid .sitemark-words span,.sitebar-overlay.is-open .sitemark-words span{color:var(--lux-gold)}
+.sitebar-overlay.is-solid .site-btn.line,.sitebar-overlay.is-open .site-btn.line{border-color:var(--lux-teal);color:var(--lux-teal)}
+.sitebar-overlay.is-solid .site-btn.solid,.sitebar-overlay.is-open .site-btn.solid{background:var(--lux-teal);color:#fff;border-color:var(--lux-teal)}
+.sitemenu{display:flex;flex-direction:column;padding:8px 22px 20px;background:var(--lux-ivory)}
+.sitemenu a{padding:14px 0;border-top:1px solid var(--lux-line);color:#173235;font:400 13px/1 var(--lux-body);letter-spacing:.18em;text-transform:uppercase}
+
+@media(max-width:1000px){
+  .lux-cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:860px){
+  .sitebar-overlay .sitebar-in{flex-wrap:nowrap}
+  .sitebar-overlay .site-btn.line{display:none}
+  .sitemenu-btn{display:flex;align-items:center;justify-content:center;width:44px;height:44px;padding:0;background:transparent;border:1px solid rgba(255,255,255,.6);color:#fff;cursor:pointer}
+  .sitebar-overlay.is-solid .sitemenu-btn,.sitebar-overlay.is-open .sitemenu-btn{border-color:var(--lux-teal);color:var(--lux-teal)}
+}
+@media(max-width:760px){
+  .lux-in{padding-inline:20px}
+  .lux-hero-shade{background:linear-gradient(180deg,rgba(8,30,28,.55) 0%,rgba(8,30,28,.15) 30%,rgba(8,30,28,.86) 100%)}
+  .lux-hero-body{padding:120px 22px 32px;gap:20px}
+  .lux-hero-cta{flex-direction:column}
+  .lux-hero-cta .lux-btn{width:100%;box-sizing:border-box}
+  .lux-hero-trust{padding:16px 22px;gap:6px 18px;font-size:11px}
+  .lux-label{font-size:11px}
+  .lux-welcome{padding:72px 24px 64px}
+  .lux-menu{padding-bottom:72px}
+  .lux-head{margin-bottom:32px}
+  .lux-cards{grid-template-columns:1fr;gap:40px}
+  .lux-card-img{aspect-ratio:4/3}
+  .lux-card-name{font-size:28px}
+  .lux-split,.lux-split-flip{flex-direction:column}
+  .lux-split-photo{flex:none;min-height:0;aspect-ratio:4/3}
+  .lux-split-text{flex:none;padding:56px 24px}
+  .lux-band-body{padding:64px 24px}
+  .lux-foot{padding-top:56px}
+}
+
+/* Portal: launch to-do list and card photo picker */
+.todo{display:flex;flex-direction:column;gap:18px}
+.todo-intro .todo-progress{margin:0 0 10px;font-size:1.05rem}
+.todo-bar{height:8px;border-radius:99px;background:#e4dac6;overflow:hidden;margin-bottom:12px}
+.todo-bar span{display:block;height:100%;background:var(--teal)}
+.todo-msg{display:block;margin-top:8px;color:var(--teal)}
+.todo-item header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px}
+.todo-item h2{margin:0;font-size:1.15rem}
+.todo-badge{flex:none;font:700 .7rem/1 Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase;padding:6px 10px;border-radius:99px;background:#f6efe1;color:#6b5528;border:1px solid #e4dac6}
+.todo-badge.is-done{background:#e6f2ef;color:#0b5149;border-color:#b9dad3}
+.todo-list{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column}
+.todo-list li{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid #eee4d3}
+.todo-list li>span:first-child{flex:1;font-weight:600}
+.todo-ok{color:#0b5149;font-size:.85rem}
+.todo-miss{color:#9a2f2f;font-size:.85rem}
+.todo-link,.todo-actions button{padding:10px 18px;border-radius:999px;border:1px solid var(--teal);background:var(--teal);color:#fff;font-weight:700;cursor:pointer}
+.todo-link{background:transparent;color:var(--teal);padding:8px 14px}
+.todo-actions{display:flex;gap:10px;margin-top:12px}
+.todo-actions button.ghost{background:transparent;color:var(--teal)}
+.todo-actions button:disabled{opacity:.5;cursor:default}
+.todo-q{display:flex;flex-direction:column;gap:4px;margin-top:14px}
+.todo-q textarea{width:100%;box-sizing:border-box;font:inherit;padding:10px;border:1px solid #d8cdb9;border-radius:8px}
+.todo-checks{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.todo-check{display:flex;gap:10px;align-items:flex-start;line-height:1.45}
+.todo-check input{width:20px;height:20px;margin-top:1px;flex:none}
+.card-pick{margin-top:10px;display:flex;flex-direction:column;gap:6px;font-size:.85rem;color:#5d6d69}
+.card-pick-row{display:flex;flex-wrap:wrap;gap:8px}
+.card-pick-item{width:64px;height:80px;border-radius:8px;border:2px solid transparent;background-size:cover;background-position:center;cursor:pointer;padding:0}
+.card-pick-item.is-on{border-color:var(--teal);box-shadow:0 0 0 2px #fff inset}
+/* overlay header refinements: square buttons, two-line name on phones */
+.sitebar-overlay .site-btn{border-radius:0;letter-spacing:.16em}
+@media(max-width:860px){
+  .sitebar-overlay .sitemark-words b{white-space:normal;font-size:.9rem;line-height:1.15;max-width:9.5em}
+  .sitebar-overlay .sitemark-words span{display:none}
+  .sitebar-overlay .sitebar-in{gap:10px}
+  .sitebar-overlay .sitenav{margin-left:auto;gap:8px}
+}
+@media(max-width:760px){
+  .lux-hero-shade{background:linear-gradient(180deg,rgba(8,30,28,.5) 0%,rgba(8,30,28,.28) 22%,rgba(8,30,28,.78) 52%,rgba(8,30,28,.92) 100%)}
+}
+.todo .todo-check{display:flex;flex-direction:row;align-items:flex-start;gap:12px;font-weight:400;font-size:.95rem;color:#173235}
+.todo .todo-check input{width:20px;height:20px;margin:2px 0 0;flex:none}
+.todo .todo-q{font-weight:400}
+.todo .todo-q b{font-weight:700}
+.todo .todo-q .hint{font-weight:400}

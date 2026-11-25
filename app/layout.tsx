@@ -1,8 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { Cormorant_Garamond, Jost } from "next/font/google";
 import { siteUrl, DEFAULT_TITLE, DEFAULT_DESCRIPTION } from "@/lib/seo";
 
 const base = siteUrl();
+
+// Display serif and body sans for the high-end look. Self-hosted by Next at build.
+const display = Cormorant_Garamond({ subsets: ["latin"], weight: ["300", "400", "500"], style: ["normal", "italic"], variable: "--font-display", display: "swap" });
+const body = Jost({ subsets: ["latin"], weight: ["300", "400", "500"], variable: "--font-body", display: "swap" });
 
 export const metadata: Metadata = {
   ...(base ? { metadataBase: base } : {}),
@@ -38,7 +43,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en-GB">
+    <html lang="en-GB" className={`${display.variable} ${body.variable}`}>
       <body>{children}</body>
     </html>
   );

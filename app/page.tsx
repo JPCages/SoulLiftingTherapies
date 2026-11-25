@@ -29,8 +29,8 @@ export async function generateMetadata():Promise<Metadata>{
 export default async function Home(){
   const content=await readSiteContent();
   const meta:SiteMeta={content};
-  return <div className="site">
-    <SiteHeader content={content}/>
+  return <div className="site site-lux">
+    <SiteHeader content={content} overlay/>
     <Render config={config} data={homepageData(content)} metadata={meta as unknown as Record<string,unknown>}/>
     <SiteFooter content={content}/>
   </div>;
