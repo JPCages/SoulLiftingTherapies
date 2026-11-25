@@ -16,6 +16,16 @@ export default function Book() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   useEffect(() => { fetch('/api/content').then(r => r.ok ? r.json() : null).then(x => x && setContent(x)).catch(() => {}); }, []);
+  // Signed-in customers get their name and email filled in, and a feeling picked
+  // on their account page arrives as a note for Emma. All still editable.
+  const [prefill, setPrefill] = useState<{ name: string; email: string; notes: string } | null>(null);
+  useEffect(() => {
+    const feeling = new URLSearchParams(location.search).get('feeling')?.slice(0, 60) ?? '';
+    const notes = feeling ? `Feeling: ${feeling.toLowerCase()}.` : '';
+    fetch('/api/auth/me').then(r => r.ok ? r.json() : null)
+      .then(m => setPrefill({ name: m?.role === 'customer' ? m.name ?? '' : '', email: m?.role === 'customer' ? m.email ?? '' : '', notes }))
+      .catch(() => setPrefill({ name: '', email: '', notes }));
+  }, []);
 
   const copy = { ...defaultSiteContent, ...content };
   const toggle = (w: string) => setPicked(p => p.includes(w) ? p.filter(x => x !== w) : [...p, w]);
@@ -48,7 +58,7 @@ export default function Book() {
 
   return <><SiteHeader content={copy} overlay/><main className="booking-page site-lux">
     <PageHero image={copy.bookingHeroImage} label={copy.bookingRequestEyebrow} title={copy.bookingRequestHeading??''} intro={copy.bookingRequestIntro} alt={`${copy.businessName} treatment room`}/>
-    <form className="booking" onSubmit={submit}>
+    <form className="booking" onSubmit={submit} key={prefill ? 'ready' : 'loading'}>
       <fieldset>
         <legend>1. Which treatment?</legend>
         <label className="sr-only" htmlFor="treatment">Treatment</label>
@@ -85,12 +95,12 @@ export default function Book() {
       <fieldset>
         <legend>4. Your details</legend>
         <div className="grid">
-          <label htmlFor="name">Your name<input id="name" name="name" required autoComplete="name" /></label>
+          <label htmlFor="name">Your name<input id="name" name="name" required autoComplete="name" defaultValue={prefill?.name} /></label>
           <label htmlFor="phone">Mobile number<input id="phone" name="phone" type="tel" required autoComplete="tel" inputMode="tel" /></label>
-          <label className="wide" htmlFor="email">Email <span className="optional">(optional)</span><input id="email" name="email" type="email" autoComplete="email" /></label>
+          <label className="wide" htmlFor="email">Email <span className="optional">(optional)</span><input id="email" name="email" type="email" autoComplete="email" defaultValue={prefill?.email} /></label>
         </div>
         <label htmlFor="notes">Anything Emma should know? <span className="optional">(optional)</span>
-          <textarea id="notes" name="notes" rows={2} placeholder="First visit, a treatment you have had before, anything she should be aware of" />
+          <textarea id="notes" name="notes" rows={2} defaultValue={prefill?.notes} placeholder="First visit, a treatment you have had before, anything she should be aware of" />
         </label>
         <label className="hp" aria-hidden="true">Leave this empty<input name="website" tabIndex={-1} autoComplete="off" /></label>
       </fieldset>

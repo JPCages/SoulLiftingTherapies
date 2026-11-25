@@ -1193,3 +1193,14 @@ body:has(.site-lux){background:var(--lux-ivory)}
 .admin-shell h1,.admin-shell h2{font-family:var(--lux-display);font-weight:400}
 @media(max-width:760px){.admin-dirtybar{left:12px;right:12px;transform:none;bottom:12px;justify-content:space-between;font-size:.82rem}}
 .admin-workspace{padding-bottom:110px}
+/* account: the customer's own requests and the feeling shortcuts */
+.my-requests{list-style:none;margin:10px 0 14px;padding:0;display:flex;flex-direction:column}
+.my-requests li{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:10px 0;border-top:1px solid var(--lux-line,#e3d9c8)}
+.my-requests li span{display:flex;flex-direction:column;gap:2px;font-size:.92rem}
+.my-requests small{color:#65726f;font-size:.75rem}
+.my-requests em{flex:none;font-style:normal;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:#8A6A32}
+.my-requests em.my-req-confirmed{color:#0b5149}
+.my-requests em.my-req-declined{color:#9a2f2f}
+.feeling-grid a{min-height:77px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;border:1px solid #e5ddd2;background:#fdfaf4;color:#183236;font-size:1.2rem;text-decoration:none}
+.feeling-grid a span{font-size:.61rem;line-height:1.1}
+.account.site-lux .feeling-grid a{border-radius:0;border-color:var(--lux-line);background:var(--lux-ivory)}
