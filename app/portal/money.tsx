@@ -2,21 +2,25 @@
 import {useEffect,useState} from 'react';
 import type {MoneyEntry,MonthRow,MarginRow,FixedCost,Forecast} from '@/lib/money';
 import {costKey} from '@/lib/money';
+import {parseCsv,mapRows,type Mapping,type ImportRow} from '@/lib/csv';
 
-type Data={sumup:{connected:boolean;lastSync:string|null};months:MonthRow[];forecast:Forecast;margins:MarginRow[];costs:Record<string,number>;fixed:FixedCost[];recent:MoneyEntry[]};
+type Conn={id:string;name:string;account?:string;lastSync?:string|null;lastError?:string|null};
+type Data={connections:Conn[];months:MonthRow[];forecast:Forecast;margins:MarginRow[];costs:Record<string,number>;fixed:FixedCost[];recent:MoneyEntry[]};
 const gbp=(p:number|null|undefined)=>p===null||p===undefined?'—':(p<0?'−':'')+'£'+(Math.abs(p)/100).toLocaleString('en-GB',{minimumFractionDigits:Math.abs(p)%100?2:0,maximumFractionDigits:2});
 const monthName=(k:string)=>new Date(k+'-01T00:00:00Z').toLocaleDateString('en-GB',{month:'short',year:'2-digit',timeZone:'UTC'});
 const toPounds=(p:number|undefined)=>p===undefined?'':String(p/100);
 const OUT_CATS=['Stock & products','Rent & room hire','Insurance','Training','Marketing','Equipment','Card fees','Other'];
 
 // Takings in, costs out, what is left each month, and what each treatment earns.
-export default function MoneyView(){
+export default function MoneyView({go}:{go:(section:string)=>void}){
   const [d,setD]=useState<Data|null>(null);
   const [msg,setMsg]=useState('');
   const [busy,setBusy]=useState(false);
   const [entry,setEntry]=useState({kind:'out',amount:'',date:new Date().toISOString().slice(0,10),category:'Stock & products',description:''});
   const [costs,setCosts]=useState<Record<string,string>>({});
   const [fixed,setFixed]=useState<{name:string;monthly:string}[]>([]);
+  const [csv,setCsv]=useState<{name:string;rows:string[][]}|null>(null);
+  const [map,setMap]=useState<Mapping>({date:0,amount:1,description:2,hasHeader:true,positiveIs:'in',category:''});
   const load=()=>fetch('/api/admin/money').then(r=>r.json()).then((x:Data&{error?:string})=>{
     if(x.error){setMsg(x.error);return}
     setD(x);
@@ -39,13 +43,13 @@ export default function MoneyView(){
     <p className="cust-msg" role="status">{msg}</p>
 
     <section className="admin-card money-connect">
-      <h2>Card takings from SumUp</h2>
-      {d.sumup.connected?<>
-        <p className="hint">Connected. {d.sumup.lastSync?`Last updated ${new Date(d.sumup.lastSync).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}.`:'Not updated yet — press the button to bring in the last year.'} Card fees come in with SumUp&rsquo;s payouts to your bank.</p>
-        <button type="button" disabled={busy} onClick={async()=>{const o=await post({action:'sync'},'');if(o)setMsg(`Updated from SumUp: ${o.added} new payment${o.added===1?'':'s'} or refund${o.added===1?'':'s'}, ${o.fees} fee${o.fees===1?'':'s'}.`)}}>Update from SumUp</button>
+      <h2>Where the figures come from</h2>
+      {d.connections.length?<>
+        <ul className="money-conns">{d.connections.map(c=><li key={c.id}><b>{c.name}</b> <span>{c.account}{c.lastSync?` · updated ${new Date(c.lastSync).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}`:' · not updated yet'}</span>{c.lastError&&<em>{c.lastError}</em>}</li>)}</ul>
+        <div className="money-actions"><button type="button" disabled={busy} onClick={async()=>{const o=await post({action:'sync'},'');if(o){const errs=(o.results as {name:string;error?:string}[]).filter(r=>r.error);setMsg(`Updated: ${o.added} new entr${o.added===1?'y':'ies'}.${errs.length?' '+errs.map(e=>`${e.name}: ${e.error}`).join(' '):''}`)}}}>Update all now</button><button type="button" className="img-btn ghost" onClick={()=>go('connections')}>Connections</button></div>
       </>:<>
-        <p className="hint">Not connected yet. To connect, create a key in SumUp and give it to JP to add securely — please don&rsquo;t email it or type it here.</p>
-        <ol className="money-steps"><li>Sign in at me.sumup.com.</li><li>Open your profile, then <b>Settings</b> → <b>For Developers</b> → <b>Toolkit</b> → <b>API Keys</b>.</li><li>Press <b>Create</b>, call it &ldquo;Website&rdquo;, and copy the key (SumUp only shows it once).</li><li>Give it to JP by phone or in person. Until then you can add takings yourself below.</li></ol>
+        <p className="hint">Nothing connected yet. Connect your card machine (SumUp, Square, Stripe, Zettle) and your accounting software (Xero, QuickBooks, FreeAgent, Sage) so the figures come in on their own — or upload a spreadsheet below.</p>
+        <div className="money-actions"><button type="button" onClick={()=>go('connections')}>Connect your systems</button></div>
       </>}
     </section>
 
@@ -81,6 +85,38 @@ export default function MoneyView(){
       <p className="hint">Rent, insurance, subscriptions. Used for the estimate above.</p>
       <div className="fixed-list">{fixed.map((f,i)=><div className="fixed-row" key={i}><input aria-label="What it is" value={f.name} placeholder="e.g. Room hire" onChange={e=>setFixed(l=>l.map((x,j)=>j===i?{...x,name:e.target.value}:x))}/><span>£</span><input aria-label="Per month" inputMode="decimal" value={f.monthly} placeholder="0" onChange={e=>setFixed(l=>l.map((x,j)=>j===i?{...x,monthly:e.target.value}:x))}/><button type="button" className="danger" onClick={()=>setFixed(l=>l.filter((_,j)=>j!==i))}>Remove</button></div>)}</div>
       <div className="money-actions"><button type="button" className="img-btn ghost" onClick={()=>setFixed(l=>[...l,{name:'',monthly:''}])}>＋ Add a cost</button><button type="button" disabled={busy} onClick={()=>post({action:'fixed',fixed},'Regular costs saved.')}>Save regular costs</button></div>
+    </section>
+
+    <section className="admin-card">
+      <h2>Upload a spreadsheet</h2>
+      <p className="hint">From any till, booking system, bank or card machine: export a CSV, choose it here, and tell us which column is which. Uploading the same file twice does not double anything.</p>
+      <input type="file" accept=".csv,text/csv" onChange={async e=>{const f=e.target.files?.[0];e.target.value='';if(!f)return;const rows=parseCsv(await f.text());if(rows.length<1){setMsg('That file looks empty');return}
+        const head=rows[0].map(h=>h.toLowerCase());const find=(re:RegExp)=>{const i=head.findIndex(h=>re.test(h));return i>=0?i:undefined};
+        const amount=find(/amount|total|value|gross/),mi=find(/paid in|money in|credit/),mo=find(/paid out|money out|debit/);
+        setMap({date:find(/date/)??0,amount:mi!==undefined&&mo!==undefined?undefined:amount??1,moneyIn:mi!==undefined&&mo!==undefined?mi:undefined,moneyOut:mi!==undefined&&mo!==undefined?mo:undefined,description:find(/desc|detail|memo|reference|name|note/),hasHeader:true,positiveIs:'in',category:''});
+        setCsv({name:f.name,rows})}}/>
+      {csv&&(()=>{const cols=csv.rows[0].map((h,i)=>({i,label:map.hasHeader?(h||`Column ${i+1}`):`Column ${i+1} (${h.slice(0,14)})`}));const pick=(k:keyof Mapping,label:string,optional=false)=><label>{label}<select value={map[k]===undefined?'':String(map[k])} onChange={e=>setMap(m=>({...m,[k]:e.target.value===''?undefined:Number(e.target.value)}))}>{optional&&<option value="">—</option>}{cols.map(c=><option key={c.i} value={c.i}>{c.label}</option>)}</select></label>;
+        const res=mapRows(csv.rows,map);const two=map.amount===undefined;
+        return <div className="csv-map">
+          <p><b>{csv.name}</b> · {csv.rows.length-(map.hasHeader?1:0)} rows</p>
+          <label className="toggle"><input type="checkbox" checked={map.hasHeader} onChange={e=>setMap(m=>({...m,hasHeader:e.target.checked}))}/> The first row is column names</label>
+          <div className="admin-fields">
+            {pick('date','Date')}
+            <label>Amounts are in<select value={two?'two':'one'} onChange={e=>setMap(m=>e.target.value==='two'?{...m,amount:undefined,moneyIn:0,moneyOut:1}:{...m,amount:1,moneyIn:undefined,moneyOut:undefined})}><option value="one">One column (+ and −)</option><option value="two">Separate in and out columns</option></select></label>
+            {two?<>{pick('moneyIn','Money in column',true)}{pick('moneyOut','Money out column',true)}</>:<>{pick('amount','Amount column')}<label>A positive amount is<select value={map.positiveIs} onChange={e=>setMap(m=>({...m,positiveIs:e.target.value as 'in'|'out'}))}><option value="in">Money in</option><option value="out">Money out</option></select></label></>}
+            {pick('description','Description',true)}
+            <label>Category (optional)<input value={map.category} placeholder="e.g. Cash takings" onChange={e=>setMap(m=>({...m,category:e.target.value}))}/></label>
+          </div>
+          <p className="hint">Ready: {res.ok.length} rows ({res.ok.filter(r=>r.kind==='in').length} in, {res.ok.filter(r=>r.kind==='out').length} out){res.skipped?` · ${res.skipped} rows without a date or amount will be skipped`:''}.</p>
+          <ul className="csv-preview">{res.ok.slice(0,4).map((r:ImportRow,i)=><li key={i}>{r.occurred_on} · {r.kind==='in'?'+':'−'}{gbp(r.amount_pennies)} · {r.description??''}</li>)}</ul>
+          <div className="money-actions"><button type="button" disabled={busy||!res.ok.length} onClick={async()=>{const o=await post({action:'import',rows:res.ok},'');if(o){setMsg(`Imported ${o.added} entr${o.added===1?'y':'ies'}${o.skipped?`, ${o.skipped} already there or not valid`:''}.`);setCsv(null)}}}>Import {res.ok.length} rows</button><button type="button" className="img-btn ghost" onClick={()=>setCsv(null)}>Cancel</button></div>
+        </div>})()}
+    </section>
+
+    <section className="admin-card">
+      <h2>For your accountant</h2>
+      <p className="hint">Download every entry for the last 12 months as a spreadsheet (CSV). It opens in Excel and imports into most accounting software.</p>
+      <div className="money-actions"><a className="conn-go" href="/api/admin/money/export">Download spreadsheet</a></div>
     </section>
 
     <section className="admin-card">

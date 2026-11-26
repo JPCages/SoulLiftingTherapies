@@ -1,7 +1,8 @@
 import {isAdmin} from '@/lib/auth';
 import {listMoneyEntries,addMoneyEntry,deleteMoneyEntry,getSetting,setSetting,readSiteContent} from '@/lib/db';
 import {monthlyCashflow,forecast,treatmentMargins,type FixedCost} from '@/lib/money';
-import {sumupConfigured,syncSumUp,SUMUP_SYNC_KEY} from '@/lib/sumup';
+import {createHash} from 'node:crypto';
+import {listConnections,syncAll} from '@/lib/connectors/service';
 
 // Emma's Money tab. Private figures: admin only, kept out of the public content.
 const COSTS_KEY='money_treatment_costs', FIXED_KEY='money_fixed_costs';
@@ -14,16 +15,16 @@ export async function GET(){
   if(!process.env.DATABASE_URL)return Response.json({error:'Database not configured'},{status:503});
   const now=new Date();
   const since=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth()-11,1)).toISOString().slice(0,10);
-  const [entries,costs,fixed,content,lastSync]=await Promise.all([
+  const [entries,costs,fixed,content,conns]=await Promise.all([
     listMoneyEntries(since),
     getSetting(COSTS_KEY).then(r=>parse<Record<string,number>>(r,{})),
     getSetting(FIXED_KEY).then(r=>parse<FixedCost[]>(r,[])),
     readSiteContent(),
-    getSetting(SUMUP_SYNC_KEY),
+    listConnections().catch(()=>({enabled:false,items:[]})),
   ]);
   const months=monthlyCashflow(entries,12,now);
   return Response.json({
-    sumup:{connected:sumupConfigured(),lastSync},
+    connections:conns.items.filter(c=>c.connected).map(c=>({id:c.id,name:c.name,account:c.account,lastSync:c.lastSync,lastError:c.lastError})),
     months,forecast:forecast(months,fixed),
     margins:treatmentMargins(content.categories,costs),
     costs,fixed,recent:entries.slice(0,60),
@@ -36,8 +37,26 @@ export async function POST(request:Request){
   const b=await request.json().catch(()=>({})) as Record<string,unknown>;
   switch(b.action){
     case 'sync':{
-      try{return Response.json({ok:true,...await syncSumUp()})}
-      catch(e){return Response.json({error:e instanceof Error?e.message:'Could not reach SumUp'},{status:502})}
+      const results=await syncAll();
+      return Response.json({ok:true,results,added:results.reduce((n,r)=>n+r.added,0)});
+    }
+    case 'import':{
+      // Rows already matched to date / amount / description in the desk. Re-importing
+      // the same spreadsheet adds nothing new: each row gets a fingerprint.
+      const rows=Array.isArray(b.rows)?b.rows.slice(0,5000):[];
+      const seen=new Map<string,number>();let added=0,skipped=0;
+      for(const raw of rows){
+        const r=raw as Record<string,unknown>;
+        const kind=r.kind==='in'?'in':r.kind==='out'?'out':null;
+        const amount=Number(r.amount_pennies);const date=String(r.occurred_on??'');
+        if(!kind||!Number.isInteger(amount)||amount<=0||amount>100_000_000||!/^\d{4}-\d{2}-\d{2}$/.test(date)){skipped++;continue}
+        const desc=r.description?String(r.description).slice(0,200):null;
+        const category=String(r.category||(kind==='in'?'Takings':'Other')).slice(0,40);
+        const base=`${date}|${kind}|${amount}|${desc??''}`;const n=(seen.get(base)??0)+1;seen.set(base,n);
+        const id='csv:'+createHash('sha256').update(`${base}|${n}`).digest('hex').slice(0,32);
+        if(await addMoneyEntry({kind,source:'import',amount_pennies:amount,occurred_on:date,category,description:desc,external_id:id}))added++;else skipped++;
+      }
+      return Response.json({ok:true,added,skipped});
     }
     case 'add':{
       const amount=pence(b.amount);
