@@ -45,6 +45,17 @@ export type SiteContent = {
   // Google Business Profile: the review link Emma copies from Google, and the
   // description she keeps on her profile (Google allows up to 750 characters).
   googleReviewUrl?: string; googleDescription?: string;
+  // How customers book: Emma's own request form, an instant-booking link to the
+  // system she already uses (Fresha, Vagaro, Treatwell...), or both.
+  bookingMode?: 'request' | 'instant' | 'both'; bookingLink?: string; bookingLinkLabel?: string;
+  // Deposit: a payment link from her own card provider, sent with confirmations.
+  depositLink?: string; depositAmount?: string;
+  replyConfirm?: string;
+  // Email reminder the day before a confirmed appointment (on unless switched off).
+  remindersEnabled?: boolean;
+  // Gift vouchers sold with her own payment links; she issues the code once paid.
+  vouchersEnabled?: boolean; voucherIntro?: string; voucherTerms?: string; voucherExpiryMonths?: number;
+  voucherOptions?: { label: string; amount: number; link: string }[];
 
   // Customer-app features that are not built yet; off until they are.
   wellbeingEnabled?: boolean; journeyEnabled?: boolean;
@@ -144,6 +155,14 @@ export const defaultSiteContent: SiteContent = {
   bookingRequestNote: 'Emma confirms by text or email, usually within a day. A £10 deposit secures the appointment once she has confirmed the time.',
   bookingResponseTime: 'within a day',
   bookingRequestSuccessHeading: 'Request sent.',
+  bookingMode: 'request', bookingLinkLabel: 'Book online now',
+  replyConfirm: "Hi {name}, you're booked in for {treatment} on {when} at {location}. {deposit}See you then! Emma, {business}",
+  remindersEnabled: true,
+  vouchersEnabled: false,
+  voucherIntro: 'Give someone time to themselves. Vouchers can be used for any treatment.',
+  voucherTerms: 'Valid for 12 months from purchase. Can be used towards any treatment. Not exchangeable for cash.',
+  voucherExpiryMonths: 12,
+  voucherOptions: [],
   replyReview: 'Hi {name}, thank you for coming in for {treatment}. If you have a minute, a short Google review would mean a lot to me: {review} Emma, {business}',
   replyOffer: 'Hi {name}, thank you for your request for {treatment}. I can do [day and time] at {location}. Would that suit you? Emma, {business}',
   replyDecline: "Hi {name}, thank you for your request for {treatment}. I'm sorry, I can't fit that in at the times you asked for. Could another day or time work for you? Emma, {business}",

@@ -18,6 +18,7 @@ export default function SiteFooter({content,desktopOnly=false}:{content:SiteCont
         <div><span className="lux-foot-h">Get in touch</span>
           {c.phone&&<a href={`tel:${c.phone.replace(/\s/g,'')}`}>{c.phone}</a>}
           {c.email&&<a href={`mailto:${c.email}`}>{c.email}</a>}
+          {c.vouchersEnabled&&<a href="/vouchers">Gift vouchers</a>}
         </div>
       </div>
       <div className="lux-foot-base"><span>© {new Date().getFullYear()} {c.businessName}</span></div>
