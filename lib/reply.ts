@@ -8,13 +8,14 @@ type Req={name:string;treatment:string;location:string;phone:string;email:string
 export const shortTreatment=(t:string)=>t.replace(/\s*\([^)]*\)\s*$/,'').trim()||t;
 const firstName=(n:string)=>n.trim().split(/\s+/)[0]||n.trim();
 
-export function fillReply(template:string,r:Req,business:string):string{
+export function fillReply(template:string,r:Req,business:string,review=''):string{
   const where=/^either/i.test(r.location)?'[Horncastle or Woodhall Spa]':r.location;
   return template
     .replace(/\{name\}/g,firstName(r.name))
     .replace(/\{treatment\}/g,shortTreatment(r.treatment))
     .replace(/\{location\}/g,where)
-    .replace(/\{business\}/g,business);
+    .replace(/\{business\}/g,business)
+    .replace(/\{review\}/g,review);
 }
 
 // UK mobile numbers as WhatsApp wants them: digits only, 44 instead of the leading 0.

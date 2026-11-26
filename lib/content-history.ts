@@ -14,6 +14,7 @@ const AREAS:[string,RegExp][]=[
   ['Business details',/^(businessName|descriptor|phone|email|horncastle|woodhall|seo)/],
   ['Loyalty rules',/^loyalty/],
   ['Reply messages',/^reply/],
+  ['Google profile',/^google/],
 ];
 
 export function areaFor(key:string):string{

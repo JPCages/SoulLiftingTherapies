@@ -11,9 +11,10 @@ const whenText=(iso:string)=>{const d=new Date(iso);return d.toLocaleDateString(
 // One booking request on Emma's desk. She picks a ready-written reply, edits it
 // (the time is left for her to fill in), and sends it by WhatsApp, text or email.
 // Sending marks the request, so the list keeps up without an extra tap.
-export default function RequestCard({r,templates,business,onStatus}:{
+export default function RequestCard({r,templates,business,onStatus,reviewUrl}:{
   r:BookingRow;
-  templates:{offer:string;decline:string};
+  templates:{offer:string;decline:string;review:string};
+  reviewUrl?:string;
   business:string;
   onStatus:(id:number,status:BookingStatus)=>void;
 }){
@@ -23,6 +24,7 @@ export default function RequestCard({r,templates,business,onStatus}:{
   const pick=(k:ReplyKind)=>{setKind(k);setMessage(fillReply(k==='offer'?templates.offer:templates.decline,r,business))};
   const links=replyLinks(r,message,`Your request: ${shortTreatment(r.treatment)}`);
   const sent=()=>onStatus(r.id,kind==='offer'?'offered':'declined');
+  const review=reviewUrl?replyLinks(r,fillReply(templates.review,r,business,reviewUrl),'Thank you'):null;
 
   return <article className={r.status==='new'?'req is-new':'req'}>
     <div className="req-head"><b>{r.name}</b><span className={'status-tag status-'+r.status}>{STATUS_LABEL[r.status]}</span><span className="req-when">{whenText(r.created_at)}</span></div>
@@ -47,6 +49,7 @@ export default function RequestCard({r,templates,business,onStatus}:{
         {links.email&&<a className="send-email" href={links.email} onClick={sent}>Email</a>}
       </div>
     </div>:<button type="button" className="req-open" onClick={()=>setOpen(true)}>Reply again</button>}
+    {r.status==='confirmed'&&review&&<div className="req-review"><span>After their visit, ask for a Google review:</span><div className="req-send">{review.whatsapp&&<a className="send-wa" href={review.whatsapp} target="_blank" rel="noopener">WhatsApp</a>}<a className="send-sms" href={review.sms}>Text</a>{review.email&&<a className="send-email" href={review.email}>Email</a>}</div></div>}
     <div className="req-actions">
       <button className="img-btn" onClick={()=>onStatus(r.id,'confirmed')}>Confirmed in Fresha</button>
       {r.status!=='offered'&&<button className="img-btn ghost" onClick={()=>onStatus(r.id,'offered')}>Replied, waiting</button>}
