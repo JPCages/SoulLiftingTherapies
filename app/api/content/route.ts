@@ -1,9 +1,13 @@
-import {type SiteContent} from '@/lib/site-content';
+import {type SiteContent,publicContent} from '@/lib/site-content';
 import {readSiteContent,writeSiteContent} from '@/lib/db';
 import {isAdmin} from '@/lib/auth';
 
-export async function GET(){
-  return Response.json(await readSiteContent());
+// Public pages get the published view (hidden treatments left out). The portal
+// asks for ?all=1 and, being signed in as Emma, gets everything.
+export async function GET(request:Request){
+  const all=new URL(request.url).searchParams.get('all')==='1'&&await isAdmin();
+  const content=await readSiteContent();
+  return Response.json(all?content:publicContent(content));
 }
 
 export async function PUT(request:Request){

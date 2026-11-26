@@ -1,4 +1,6 @@
-export type Service={name:string;price:string;duration:string;description?:string;note?:string;image?:string;imagePos?:number}; export type Category={name:string;short:string;services:Service[];image?:string;imagePos?:number;banner?:string;bannerPos?:number;
+export type Service={name:string;price:string;duration:string;description?:string;note?:string;image?:string;imagePos?:number;
+  // Hidden treatments stay in the portal but are left off every public page.
+  hidden?:boolean}; export type Category={name:string;short:string;services:Service[];image?:string;imagePos?:number;banner?:string;bannerPos?:number;
   // Portrait photo for this category's card on the homepage. Banners are wide header
   // graphics and crop badly in a tall card, so they are never used there.
   cardImage?:string;cardImagePos?:number};
