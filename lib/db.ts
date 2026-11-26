@@ -11,13 +11,13 @@ function sslFor(url:string):false|{rejectUnauthorized:boolean}{
   if(/@(localhost|127\.0\.0\.1|\[::1\]|[^/]*\.railway\.internal)/.test(url))return false;
   return {rejectUnauthorized:false};
 }
-function pool(){if(!process.env.DATABASE_URL)throw new Error('DATABASE_URL is not configured');return globalDb.soulPool??=new Pool({connectionString:process.env.DATABASE_URL,ssl:sslFor(process.env.DATABASE_URL)})}
+export function pool(){if(!process.env.DATABASE_URL)throw new Error('DATABASE_URL is not configured');return globalDb.soulPool??=new Pool({connectionString:process.env.DATABASE_URL,ssl:sslFor(process.env.DATABASE_URL)})}
 
 // Schema setup runs once per process. Without this, two concurrent requests against a
 // cold database race on CREATE TABLE IF NOT EXISTS and Postgres raises a duplicate-key
 // error on pg_type. A failed attempt is forgotten so the next request can retry.
 const schemaReady=new Map<string,Promise<void>>();
-function once(key:string,fn:()=>Promise<void>):Promise<void>{
+export function once(key:string,fn:()=>Promise<void>):Promise<void>{
   let p=schemaReady.get(key);
   if(!p){ p=fn().catch(e=>{schemaReady.delete(key);throw e}); schemaReady.set(key,p) }
   return p;

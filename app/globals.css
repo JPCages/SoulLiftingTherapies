@@ -1311,3 +1311,26 @@ body:has(.site-lux){background:var(--lux-ivory)}
 .g-desc textarea{width:100%;box-sizing:border-box;margin-top:6px;padding:10px;border:1px solid #d8cdb9;border-radius:8px;font:inherit}
 .req-review{display:flex;flex-direction:column;gap:6px;margin-top:10px;padding:10px 12px;border-radius:12px;background:#eef3ef;font-size:.88rem}
 @media(max-width:760px){.fixed-row{grid-template-columns:1fr auto 90px}.fixed-row .danger{grid-column:1/-1;justify-self:start}}
+/* Connections */
+.conns{display:flex;flex-direction:column;gap:18px}
+.conn-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:10px}
+.conn{display:flex;flex-direction:column;gap:8px;padding:16px;border:1px solid #e3d9c8;border-radius:14px;background:#fffdf8}
+.conn.is-on{border-color:#b9dad3;background:#f3faf7}
+.conn.is-off{opacity:.62}
+.conn header{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.conn header b{font:400 1.25rem/1.2 var(--lux-display)}
+.conn-tag{font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#65726f}
+.conn-tag.on{color:#0b5149}
+.conn-blurb,.conn-meta{margin:0;color:#4d6864;font-size:.88rem}
+.conn-err{margin:0;color:#9a2f2f;font-size:.85rem}
+.conn-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}
+.conn-actions button,.conn-key button,.conn-go{border:1px solid #006f66;border-radius:999px;background:#006f66;color:#fff;padding:9px 16px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block}
+.conn-actions button.ghost{background:transparent;color:#006f66}
+.conn-actions button:disabled,.conn-key button:disabled{opacity:.5}
+.conn-key{display:flex;flex-direction:column;gap:8px;padding-top:8px;border-top:1px solid #eee4d3}
+.conn-key input{width:100%;box-sizing:border-box;padding:10px;border:1px solid #d8cdb9;border-radius:8px;font:inherit}
+.money-conns{list-style:none;margin:0 0 6px;padding:0;display:flex;flex-direction:column;gap:6px;font-size:.9rem}
+.money-conns span{color:#65726f}
+.money-conns em{display:block;color:#9a2f2f;font-style:normal;font-size:.85rem}
+.csv-map{display:flex;flex-direction:column;gap:10px;margin-top:12px;padding:14px;border-radius:12px;background:#f6f1e7}
+.csv-preview{margin:0;padding-left:18px;font-size:.88rem;color:#4d6864}
