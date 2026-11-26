@@ -64,7 +64,7 @@ export type ChecklistItem={id:string;title:string;done:boolean;detail:string};
 export function checklistStatus(c:SiteContent,a:ChecklistAnswers):ChecklistItem[]{
   const cats=c.categories.filter(x=>x.services.length);
   const noCard=cats.filter(x=>!(x.cardImage||x.image)).map(x=>x.name);
-  const noPhoto=cats.flatMap(x=>x.services.filter(s=>!s.image).map(s=>s.name));
+  const noPhoto=cats.flatMap(x=>x.services.filter(s=>!s.image&&!s.hidden).map(s=>s.name));
   const hoursMissing=[!(c.horncastleHours||'').trim()&&'Horncastle',!(c.woodhallHours||'').trim()&&'Woodhall Spa'].filter(Boolean) as string[];
   const privacyLeft=PRIVACY_QUESTIONS.filter(q=>!a.privacy[q.id]).length;
   const signLeft=SIGN_OFFS.filter(o=>!a.signOffs[o.id]).length;

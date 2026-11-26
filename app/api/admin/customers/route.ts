@@ -7,7 +7,8 @@ import {pointsForSpend} from '@/lib/loyalty';
 export async function GET(){
   if(!(await isAdmin()))return Response.json({error:'Admin sign-in required'},{status:401});
   if(!process.env.DATABASE_URL)return Response.json({error:'Database not configured'},{status:503});
-  const customers=await listCustomersWithPoints();
+  // Never send password hashes to the browser, even to Emma.
+  const customers=(await listCustomersWithPoints()).map(c=>({id:c.id,name:c.name,email:c.email,created_at:c.created_at,balance:c.balance,total_spent_pennies:c.total_spent_pennies}));
   return Response.json({customers});
 }
 

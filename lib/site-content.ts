@@ -40,6 +40,11 @@ export type SiteContent = {
   bookingRequestEyebrow?: string; bookingRequestHeading?: string; bookingRequestIntro?: string;
   bookingRequestNote?: string; bookingResponseTime?: string;
   bookingRequestSuccessHeading?: string; bookingRequestSuccessBody?: string;
+  // Ready-written replies on the desk. {name}, {treatment}, {location} and {business} are filled in.
+  replyOffer?: string; replyDecline?: string; replyReview?: string;
+  // Google Business Profile: the review link Emma copies from Google, and the
+  // description she keeps on her profile (Google allows up to 750 characters).
+  googleReviewUrl?: string; googleDescription?: string;
 
   // Customer-app features that are not built yet; off until they are.
   wellbeingEnabled?: boolean; journeyEnabled?: boolean;
@@ -139,6 +144,9 @@ export const defaultSiteContent: SiteContent = {
   bookingRequestNote: 'Emma confirms by text or email, usually within a day. A £10 deposit secures the appointment once she has confirmed the time.',
   bookingResponseTime: 'within a day',
   bookingRequestSuccessHeading: 'Request sent.',
+  replyReview: 'Hi {name}, thank you for coming in for {treatment}. If you have a minute, a short Google review would mean a lot to me: {review} Emma, {business}',
+  replyOffer: 'Hi {name}, thank you for your request for {treatment}. I can do [day and time] at {location}. Would that suit you? Emma, {business}',
+  replyDecline: "Hi {name}, thank you for your request for {treatment}. I'm sorry, I can't fit that in at the times you asked for. Could another day or time work for you? Emma, {business}",
   bookingRequestSuccessBody: 'Emma will check her diary and come back to you to confirm. Nothing is held until she does.',
 
   wellbeingEnabled: false,
@@ -170,6 +178,12 @@ export const defaultSiteContent: SiteContent = {
 };
 
 // Merge a stored (possibly partial) document over the defaults so every field is present.
+// What the public sees: the same content without any treatment Emma has hidden.
+// The portal asks for everything; every public page gets this.
+export function publicContent(c: SiteContent): SiteContent {
+  return { ...c, categories: c.categories.map(cat => ({ ...cat, services: cat.services.filter(s => !s.hidden) })) };
+}
+
 export function withDefaults(stored?: Partial<SiteContent> | null): SiteContent {
   const c = { ...defaultSiteContent, ...(stored ?? {}) };
   if (!Array.isArray(c.categories) || c.categories.length === 0) c.categories = categories;

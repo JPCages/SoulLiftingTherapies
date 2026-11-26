@@ -1,13 +1,21 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import { Cormorant_Garamond, Jost } from "next/font/google";
+import localFont from "next/font/local";
 import { siteUrl, DEFAULT_TITLE, DEFAULT_DESCRIPTION } from "@/lib/seo";
 
 const base = siteUrl();
 
-// Display serif and body sans for the high-end look. Self-hosted by Next at build.
-const display = Cormorant_Garamond({ subsets: ["latin"], weight: ["300", "400", "500"], style: ["normal", "italic"], variable: "--font-display", display: "swap" });
-const body = Jost({ subsets: ["latin"], weight: ["300", "400", "500"], variable: "--font-body", display: "swap" });
+// Display serif and body sans for the high-end look. The font files are in the
+// repo (app/fonts) so the build never has to download them from Google, which
+// failed intermittently on Railway and blocked deploys.
+const display = localFont({
+  src: [
+    { path: "./fonts/cormorant-garamond-latin.woff2", weight: "300 500", style: "normal" },
+    { path: "./fonts/cormorant-garamond-italic-latin.woff2", weight: "300 500", style: "italic" },
+  ],
+  variable: "--font-display", display: "swap",
+});
+const body = localFont({ src: [{ path: "./fonts/jost-latin.woff2", weight: "300 500", style: "normal" }], variable: "--font-body", display: "swap" });
 
 export const metadata: Metadata = {
   ...(base ? { metadataBase: base } : {}),

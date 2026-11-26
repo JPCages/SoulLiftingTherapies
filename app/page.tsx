@@ -1,6 +1,7 @@
 import type {Metadata} from 'next';
 import {Render} from '@puckeditor/core/rsc';
 import {readSiteContent} from '@/lib/db';
+import {publicContent} from '@/lib/site-content';
 import {config,type SiteMeta} from '@/lib/puck/config';
 import {homepageData} from '@/lib/puck/migrate';
 import {DEFAULT_TITLE,DEFAULT_DESCRIPTION} from '@/lib/seo';
@@ -27,7 +28,7 @@ export async function generateMetadata():Promise<Metadata>{
 }
 
 export default async function Home(){
-  const content=await readSiteContent();
+  const content=publicContent(await readSiteContent());
   const meta:SiteMeta={content};
   return <div className="site site-lux">
     <SiteHeader content={content} overlay/>

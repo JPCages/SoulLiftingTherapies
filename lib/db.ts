@@ -1,6 +1,7 @@
 import {Pool} from 'pg';
 import {withDefaults,type SiteContent} from './site-content';
 import {applyLaunchLayout,LAUNCH_LAYOUT_KEY} from './launch-layout';
+import {summariseChange,HISTORY_KEEP} from './content-history';
 
 const globalDb=globalThis as unknown as {soulPool?:Pool};
 // Decide SSL from the connection string, not NODE_ENV: local, and Railway's
@@ -43,7 +44,41 @@ function launchLayoutReady(){return once('launch_layout',async()=>{
   finally{db.release()}
 })}
 export async function readSiteContent():Promise<SiteContent>{if(!process.env.DATABASE_URL)return withDefaults();await ready();await launchLayoutReady().catch(e=>console.error('launch layout not applied',e));const {rows}=await pool().query('SELECT content FROM site_content WHERE id=1');return withDefaults(rows[0]?.content)}
-export async function writeSiteContent(content:SiteContent){await ready();await pool().query('INSERT INTO site_content(id,content,updated_at) VALUES(1,$1,NOW()) ON CONFLICT(id) DO UPDATE SET content=EXCLUDED.content,updated_at=NOW()',[JSON.stringify(content)])}
+// Every publish keeps the version it replaced (last HISTORY_KEEP), so Emma can undo.
+function historyReady(){return once('site_content_history',async()=>{await pool().query('CREATE TABLE IF NOT EXISTS site_content_history (id SERIAL PRIMARY KEY, content JSONB NOT NULL, summary TEXT NOT NULL, saved_at TIMESTAMPTZ NOT NULL DEFAULT NOW())')})}
+export async function writeSiteContent(content:SiteContent,label?:string){
+  await ready();await historyReady();
+  const db=await pool().connect();
+  try{
+    await db.query('BEGIN');
+    const {rows}=await db.query('SELECT content FROM site_content WHERE id=1 FOR UPDATE');
+    const before=rows[0]?.content as Record<string,unknown>|undefined;
+    const changed=summariseChange(before,content as unknown as Record<string,unknown>);
+    const summary=label??changed;
+    if(before&&changed!=='No changes'){
+      await db.query('INSERT INTO site_content_history(content,summary) VALUES($1,$2)',[JSON.stringify(before),summary]);
+      await db.query('DELETE FROM site_content_history WHERE id NOT IN (SELECT id FROM site_content_history ORDER BY id DESC LIMIT $1)',[HISTORY_KEEP]);
+    }
+    await db.query('INSERT INTO site_content(id,content,updated_at) VALUES(1,$1,NOW()) ON CONFLICT(id) DO UPDATE SET content=EXCLUDED.content,updated_at=NOW()',[JSON.stringify(content)]);
+    await db.query('COMMIT');
+  }catch(e){await db.query('ROLLBACK').catch(()=>{});throw e}
+  finally{db.release()}
+}
+export type ContentVersion={id:number;summary:string;saved_at:string};
+export async function listContentHistory():Promise<ContentVersion[]>{
+  await historyReady();
+  const {rows}=await pool().query('SELECT id,summary,saved_at FROM site_content_history ORDER BY id DESC LIMIT $1',[HISTORY_KEEP]);
+  return rows as ContentVersion[];
+}
+// Put back the version saved before change `id`. The version being replaced is
+// itself kept, so an undo can be undone.
+export async function restoreContentVersion(id:number):Promise<boolean>{
+  await historyReady();
+  const {rows}=await pool().query('SELECT content,summary FROM site_content_history WHERE id=$1',[id]);
+  if(!rows[0])return false;
+  await writeSiteContent(rows[0].content as SiteContent,`Undo: ${String(rows[0].summary).replace(/^Changed /,'').replace(/^Undo: /,'')}`);
+  return true;
+}
 
 // --- Image store (kept out of the SiteContent JSON so public pages stay light) ---
 function imagesReady(){return once('images',async()=>{await pool().query('CREATE TABLE IF NOT EXISTS images (id TEXT PRIMARY KEY, mime TEXT NOT NULL, data BYTEA NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())')})}
@@ -244,4 +279,37 @@ export async function setSetting(key:string,value:string|null){
   await settingsReady();
   if(value===null||value===''){await pool().query('DELETE FROM app_settings WHERE key=$1',[key]);return}
   await pool().query('INSERT INTO app_settings(key,value,updated_at) VALUES($1,$2,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()',[key,value]);
+}
+
+// --- Money: takings and costs. Admin only; never part of the public content. ---
+export type {MoneyEntry} from './money';
+function moneyReady(){return once('money_entries',async()=>{await pool().query(`CREATE TABLE IF NOT EXISTS money_entries (
+  id SERIAL PRIMARY KEY,
+  kind TEXT NOT NULL CHECK (kind IN ('in','out')),
+  source TEXT NOT NULL DEFAULT 'manual',
+  amount_pennies INTEGER NOT NULL CHECK (amount_pennies >= 0),
+  fee_pennies INTEGER NOT NULL DEFAULT 0,
+  occurred_on DATE NOT NULL,
+  category TEXT NOT NULL DEFAULT 'Other',
+  description TEXT,
+  external_id TEXT UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`);
+  await pool().query('CREATE INDEX IF NOT EXISTS money_entries_date_idx ON money_entries (occurred_on DESC)');
+})}
+export async function listMoneyEntries(sinceIso:string):Promise<import('./money').MoneyEntry[]>{
+  await moneyReady();
+  const {rows}=await pool().query("SELECT id,kind,source,amount_pennies,fee_pennies,to_char(occurred_on,'YYYY-MM-DD') AS occurred_on,category,description FROM money_entries WHERE occurred_on >= $1 ORDER BY occurred_on DESC, id DESC",[sinceIso]);
+  return rows;
+}
+export async function addMoneyEntry(e:{kind:'in'|'out';source:string;amount_pennies:number;fee_pennies?:number;occurred_on:string;category:string;description:string|null;external_id?:string|null}):Promise<boolean>{
+  await moneyReady();
+  const r=await pool().query('INSERT INTO money_entries(kind,source,amount_pennies,fee_pennies,occurred_on,category,description,external_id) VALUES($1,$2,$3,$4,$5,$6,$7,$8) ON CONFLICT (external_id) DO NOTHING',
+    [e.kind,e.source,e.amount_pennies,e.fee_pennies??0,e.occurred_on,e.category,e.description,e.external_id??null]);
+  return (r.rowCount??0)>0;
+}
+export async function deleteMoneyEntry(id:number){
+  await moneyReady();
+  // Synced card payments come back on the next sync, so only hand-entered ones can be deleted.
+  const r=await pool().query("DELETE FROM money_entries WHERE id=$1 AND external_id IS NULL",[id]);
+  return (r.rowCount??0)>0;
 }
