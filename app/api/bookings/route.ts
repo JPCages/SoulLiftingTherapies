@@ -31,7 +31,8 @@ export async function POST(request:Request){
   if(bookingLimiter.isLimited(ip))return Response.json({error:'That is several requests already. Please call or text Emma instead.'},{status:429});
 
   const customerId=await currentCustomerId().catch(()=>null);
-  const req={name,email:email||null,phone,treatment,location,preferences,notes:notes||null,customerId};
+  const shortNotice=body.shortNotice===true;
+  const req={name,email:email||null,phone,treatment,location,preferences:shortNotice?`${preferences} (can come at short notice)`:preferences,notes:notes||null,customerId,shortNotice};
   await createBookingRequest(req);
   bookingLimiter.record(ip);
   // The request is saved first; the alert is a courtesy and can never fail it.

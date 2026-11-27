@@ -43,6 +43,7 @@ export default function SiteHeader({content,desktopOnly=false,onSignOut,overlay=
         <Link className="sitenav-link" href="/services">Treatments</Link>
         <Link className="sitenav-link" href="/#how">How booking works</Link>
         <Link className="sitenav-link" href="/#find">Find us</Link>
+        {content.vouchersEnabled&&<Link className="sitenav-link" href="/vouchers">Gift vouchers</Link>}
         {role
           ? <><Link className="sitenav-link" href={home.href}>{home.label}</Link><button type="button" className="site-btn line" onClick={signOut}>Sign out</button></>
           : <Link className="site-btn line" href="/login">Log in</Link>}
@@ -56,6 +57,7 @@ export default function SiteHeader({content,desktopOnly=false,onSignOut,overlay=
       <Link href="/services" onClick={close}>Treatments</Link>
       <Link href="/#how" onClick={close}>How booking works</Link>
       <Link href="/#find" onClick={close}>Find us</Link>
+      {content.vouchersEnabled&&<Link href="/vouchers" onClick={close}>Gift vouchers</Link>}
       {role
         ? <><Link href={home.href} onClick={close}>{home.label}</Link><button type="button" onClick={()=>{close();signOut()}}>Sign out</button></>
         : <Link href="/login" onClick={close}>Log in</Link>}

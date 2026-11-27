@@ -201,7 +201,7 @@ export async function linkClientByEmail(email:string,customerId:number):Promise<
 
 // --- Booking requests (Fresha stays the diary; the app only asks) ---
 export type BookingStatus='new'|'offered'|'confirmed'|'declined';
-export type BookingRequest={id:number;name:string;email:string|null;phone:string;treatment:string;location:string;preferences:string;notes:string|null;status:BookingStatus;client_id:number|null;customer_id:number|null;created_at:string;handled_at:string|null};
+export type BookingRequest={id:number;name:string;email:string|null;phone:string;treatment:string;location:string;preferences:string;notes:string|null;status:BookingStatus;client_id:number|null;customer_id:number|null;created_at:string;handled_at:string|null;short_notice:boolean;appointment_at:string|null;reminder_sent_at:string|null};
 function bookingsReady(){ return once('booking_requests',async()=>{
   await clientsReady(); // client_id references clients(id), which itself needs customers
   await pool().query(`CREATE TABLE IF NOT EXISTS booking_requests (
@@ -219,8 +219,13 @@ function bookingsReady(){ return once('booking_requests',async()=>{
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     handled_at TIMESTAMPTZ)`);
   await pool().query('CREATE INDEX IF NOT EXISTS booking_requests_status_idx ON booking_requests (status, created_at DESC)');
+  // Added Nov 2026, safe to run again: short-notice list, confirmed time, reminder sent.
+  await pool().query(`ALTER TABLE booking_requests
+    ADD COLUMN IF NOT EXISTS short_notice BOOLEAN NOT NULL DEFAULT false,
+    ADD COLUMN IF NOT EXISTS appointment_at TIMESTAMPTZ,
+    ADD COLUMN IF NOT EXISTS reminder_sent_at TIMESTAMPTZ`);
 })}
-export type NewBookingRequest={name:string;email:string|null;phone:string;treatment:string;location:string;preferences:string;notes:string|null;customerId:number|null};
+export type NewBookingRequest={name:string;email:string|null;phone:string;treatment:string;location:string;preferences:string;notes:string|null;customerId:number|null;shortNotice?:boolean};
 export async function createBookingRequest(r:NewBookingRequest):Promise<BookingRequest>{
   await bookingsReady();
   // Attach it to Emma's existing client record where the phone or email matches.
@@ -232,17 +237,17 @@ export async function createBookingRequest(r:NewBookingRequest):Promise<BookingR
     [r.phone??'', r.email??'']);
   const clientId=match[0]?.id??null;
   const {rows}=await pool().query(
-    `INSERT INTO booking_requests (name,email,phone,treatment,location,preferences,notes,client_id,customer_id)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
-    [r.name,r.email,r.phone,r.treatment,r.location,r.preferences,r.notes,clientId,r.customerId]);
+    `INSERT INTO booking_requests (name,email,phone,treatment,location,preferences,notes,client_id,customer_id,short_notice)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+    [r.name,r.email,r.phone,r.treatment,r.location,r.preferences,r.notes,clientId,r.customerId,r.shortNotice===true]);
   return rows[0] as BookingRequest;
 }
 // A signed-in customer's own recent requests, for their account page. Only the
 // fields they need to see; never anyone else's.
-export type CustomerRequest={id:number;treatment:string;location:string;status:BookingStatus;created_at:string};
+export type CustomerRequest={id:number;treatment:string;location:string;status:BookingStatus;created_at:string;appointment_at:string|null};
 export async function listRequestsForCustomer(customerId:number,limit=5):Promise<CustomerRequest[]>{
   await bookingsReady();
-  const {rows}=await pool().query('SELECT id,treatment,location,status,created_at FROM booking_requests WHERE customer_id=$1 ORDER BY created_at DESC LIMIT $2',[customerId,limit]);
+  const {rows}=await pool().query('SELECT id,treatment,location,status,created_at,appointment_at FROM booking_requests WHERE customer_id=$1 ORDER BY created_at DESC LIMIT $2',[customerId,limit]);
   return rows as CustomerRequest[];
 }
 export type BookingRow=BookingRequest&{client_name:string|null};
@@ -258,6 +263,40 @@ export async function listBookingRequests(status?:string):Promise<BookingRow[]>{
 export async function setBookingStatus(id:number,status:BookingStatus){
   await bookingsReady();
   await pool().query("UPDATE booking_requests SET status=$2, handled_at=CASE WHEN $2='new' THEN NULL ELSE NOW() END WHERE id=$1",[id,status]);
+}
+// Confirm a request with a time. A new time clears any reminder already sent.
+export async function setAppointment(id:number,at:string|null):Promise<BookingRequest|null>{
+  await bookingsReady();
+  const {rows}=await pool().query("UPDATE booking_requests SET appointment_at=$2, reminder_sent_at=NULL, status='confirmed', handled_at=NOW() WHERE id=$1 RETURNING *",[id,at]);
+  return rows[0]??null;
+}
+export async function getBookingRequest(id:number):Promise<BookingRequest|null>{
+  await bookingsReady();
+  const {rows}=await pool().query('SELECT * FROM booking_requests WHERE id=$1',[id]);
+  return rows[0]??null;
+}
+// Claim the reminders that are due (appointment within the next 24 hours, not yet
+// reminded). Claiming sets reminder_sent_at first, so a reminder is never sent twice.
+export async function claimDueReminders(now=new Date()):Promise<BookingRequest[]>{
+  await bookingsReady();
+  const {rows}=await pool().query(`UPDATE booking_requests SET reminder_sent_at=NOW()
+    WHERE status='confirmed' AND email IS NOT NULL AND reminder_sent_at IS NULL
+      AND appointment_at > $1 AND appointment_at <= $1::timestamptz + interval '24 hours'
+    RETURNING *`,[now.toISOString()]);
+  return rows;
+}
+// A reminder that could not be sent is released, so the next run tries again.
+export async function releaseReminder(id:number){await bookingsReady();await pool().query('UPDATE booking_requests SET reminder_sent_at=NULL WHERE id=$1',[id])}
+export async function upcomingAppointments(days=7):Promise<BookingRequest[]>{
+  await bookingsReady();
+  const {rows}=await pool().query(`SELECT * FROM booking_requests WHERE status='confirmed' AND appointment_at >= NOW() - interval '2 hours'
+    AND appointment_at < NOW() + ($1 || ' days')::interval ORDER BY appointment_at`,[String(days)]);
+  return rows;
+}
+export async function shortNoticeList():Promise<BookingRequest[]>{
+  await bookingsReady();
+  const {rows}=await pool().query("SELECT * FROM booking_requests WHERE short_notice AND status IN ('new','offered') ORDER BY created_at DESC LIMIT 20");
+  return rows;
 }
 export async function countNewBookingRequests():Promise<number>{
   await bookingsReady();
@@ -313,3 +352,97 @@ export async function deleteMoneyEntry(id:number){
   const r=await pool().query("DELETE FROM money_entries WHERE id=$1 AND external_id IS NULL",[id]);
   return (r.rowCount??0)>0;
 }
+
+// --- Gift vouchers: sold with the salon's own payment links, issued once paid. ---
+export type Voucher={id:number;code:string|null;amount_pennies:number;balance_pennies:number;buyer_name:string;buyer_email:string|null;recipient_name:string|null;message:string|null;status:'pending'|'issued'|'void';created_at:string;issued_at:string|null;expires_on:string|null};
+function vouchersReady(){return once('vouchers',async()=>{
+  await pool().query(`CREATE TABLE IF NOT EXISTS vouchers (
+    id SERIAL PRIMARY KEY, code TEXT UNIQUE, amount_pennies INTEGER NOT NULL CHECK (amount_pennies > 0),
+    balance_pennies INTEGER NOT NULL CHECK (balance_pennies >= 0), buyer_name TEXT NOT NULL, buyer_email TEXT,
+    recipient_name TEXT, message TEXT, status TEXT NOT NULL DEFAULT 'pending',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), issued_at TIMESTAMPTZ, expires_on DATE)`);
+  await pool().query(`CREATE TABLE IF NOT EXISTS voucher_uses (id SERIAL PRIMARY KEY, voucher_id INTEGER NOT NULL REFERENCES vouchers(id) ON DELETE CASCADE,
+    amount_pennies INTEGER NOT NULL CHECK (amount_pennies > 0), note TEXT, used_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`);
+})}
+const VOUCHER_COLS="id,code,amount_pennies,balance_pennies,buyer_name,buyer_email,recipient_name,message,status,created_at,issued_at,to_char(expires_on,'YYYY-MM-DD') AS expires_on";
+export async function createVoucherOrder(v:{amount_pennies:number;buyer_name:string;buyer_email:string|null;recipient_name:string|null;message:string|null}):Promise<Voucher>{
+  await vouchersReady();
+  const {rows}=await pool().query(`INSERT INTO vouchers(amount_pennies,balance_pennies,buyer_name,buyer_email,recipient_name,message) VALUES($1,$1,$2,$3,$4,$5) RETURNING ${VOUCHER_COLS}`,
+    [v.amount_pennies,v.buyer_name,v.buyer_email,v.recipient_name,v.message]);
+  return rows[0];
+}
+export async function listVouchers():Promise<Voucher[]>{
+  await vouchersReady();
+  const {rows}=await pool().query(`SELECT ${VOUCHER_COLS} FROM vouchers ORDER BY (status='pending') DESC, created_at DESC LIMIT 300`);
+  return rows;
+}
+// Issue a paid voucher: give it a code and an expiry. Only a pending voucher can be issued.
+export async function issueVoucher(id:number,code:string,expiresOn:string|null):Promise<Voucher|null>{
+  await vouchersReady();
+  const {rows}=await pool().query(`UPDATE vouchers SET status='issued',code=$2,issued_at=NOW(),expires_on=$3 WHERE id=$1 AND status='pending' RETURNING ${VOUCHER_COLS}`,[id,code,expiresOn]);
+  return rows[0]??null;
+}
+export async function voidVoucher(id:number){await vouchersReady();await pool().query("UPDATE vouchers SET status='void' WHERE id=$1",[id])}
+export async function findVoucher(code:string):Promise<Voucher|null>{
+  await vouchersReady();
+  const {rows}=await pool().query(`SELECT ${VOUCHER_COLS} FROM vouchers WHERE upper(code)=upper($1)`,[code.trim()]);
+  return rows[0]??null;
+}
+// Take an amount off a voucher. Never below zero, never on an expired or unissued one.
+export async function redeemVoucher(code:string,amount:number,note:string|null):Promise<{ok:true;voucher:Voucher}|{ok:false;error:string}>{
+  await vouchersReady();
+  const db=await pool().connect();
+  try{
+    await db.query('BEGIN');
+    const {rows}=await db.query(`SELECT ${VOUCHER_COLS} FROM vouchers WHERE upper(code)=upper($1) FOR UPDATE`,[code.trim()]);
+    const v=rows[0] as Voucher|undefined;
+    if(!v){await db.query('ROLLBACK');return {ok:false,error:'No voucher with that code'}}
+    if(v.status!=='issued'){await db.query('ROLLBACK');return {ok:false,error:v.status==='void'?'That voucher was cancelled':'That voucher has not been issued yet'}}
+    if(v.expires_on&&v.expires_on<new Date().toISOString().slice(0,10)){await db.query('ROLLBACK');return {ok:false,error:`That voucher expired on ${v.expires_on}`}}
+    if(amount>v.balance_pennies){await db.query('ROLLBACK');return {ok:false,error:'That is more than is left on the voucher'}}
+    await db.query('INSERT INTO voucher_uses(voucher_id,amount_pennies,note) VALUES($1,$2,$3)',[v.id,amount,note]);
+    const u=await db.query(`UPDATE vouchers SET balance_pennies=balance_pennies-$2 WHERE id=$1 RETURNING ${VOUCHER_COLS}`,[v.id,amount]);
+    await db.query('COMMIT');
+    return {ok:true,voucher:u.rows[0]};
+  }catch(e){await db.query('ROLLBACK').catch(()=>{});throw e}
+  finally{db.release()}
+}
+
+// --- Courses: a set number of sessions sold together, ticked off visit by visit. ---
+export type Course={id:number;customer_id:number|null;person_name:string;title:string;sessions_total:number;sessions_used:number;note:string|null;created_at:string;expires_on:string|null};
+function coursesReady(){return once('courses',async()=>{
+  await customersReady();
+  await pool().query(`CREATE TABLE IF NOT EXISTS courses (
+    id SERIAL PRIMARY KEY, customer_id INTEGER REFERENCES customers(id) ON DELETE SET NULL, person_name TEXT NOT NULL,
+    title TEXT NOT NULL, sessions_total INTEGER NOT NULL CHECK (sessions_total BETWEEN 1 AND 100),
+    sessions_used INTEGER NOT NULL DEFAULT 0 CHECK (sessions_used >= 0), note TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), expires_on DATE)`);
+  await pool().query(`CREATE TABLE IF NOT EXISTS course_uses (id SERIAL PRIMARY KEY, course_id INTEGER NOT NULL REFERENCES courses(id) ON DELETE CASCADE, used_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`);
+})}
+const COURSE_COLS="id,customer_id,person_name,title,sessions_total,sessions_used,note,created_at,to_char(expires_on,'YYYY-MM-DD') AS expires_on";
+export async function createCourse(c:{customer_id:number|null;person_name:string;title:string;sessions_total:number;note:string|null;expires_on:string|null}):Promise<Course>{
+  await coursesReady();
+  const {rows}=await pool().query(`INSERT INTO courses(customer_id,person_name,title,sessions_total,note,expires_on) VALUES($1,$2,$3,$4,$5,$6) RETURNING ${COURSE_COLS}`,
+    [c.customer_id,c.person_name,c.title,c.sessions_total,c.note,c.expires_on]);
+  return rows[0];
+}
+export async function listCourses():Promise<Course[]>{
+  await coursesReady();
+  const {rows}=await pool().query(`SELECT ${COURSE_COLS} FROM courses ORDER BY (sessions_used<sessions_total) DESC, created_at DESC LIMIT 300`);
+  return rows;
+}
+export async function coursesForCustomer(customerId:number):Promise<Course[]>{
+  await coursesReady();
+  const {rows}=await pool().query(`SELECT ${COURSE_COLS} FROM courses WHERE customer_id=$1 ORDER BY created_at DESC`,[customerId]);
+  return rows;
+}
+// Use one session (or put one back). Stays between 0 and the course size.
+export async function markCourseSession(id:number,undo=false):Promise<Course|null>{
+  await coursesReady();
+  const {rows}=await pool().query(undo
+    ?`UPDATE courses SET sessions_used=sessions_used-1 WHERE id=$1 AND sessions_used>0 RETURNING ${COURSE_COLS}`
+    :`UPDATE courses SET sessions_used=sessions_used+1 WHERE id=$1 AND sessions_used<sessions_total RETURNING ${COURSE_COLS}`,[id]);
+  if(rows[0]&&!undo)await pool().query('INSERT INTO course_uses(course_id) VALUES($1)',[id]);
+  return rows[0]??null;
+}
+export async function deleteCourse(id:number){await coursesReady();await pool().query('DELETE FROM courses WHERE id=$1',[id])}

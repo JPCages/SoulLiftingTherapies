@@ -15,14 +15,13 @@ export default function Services(){
   const [active,setActive]=useState(defaultSiteContent.categories[0].name);
   const [selected,setSelected]=useState<Service|null>(null);
   useEffect(()=>{fetch('/api/content').then(r=>r.ok?r.json():null).then(x=>x&&setContent(x)).catch(()=>{})},[]);
-  useEffect(()=>{ if(!content.categories.some(c=>c.name===active)&&content.categories[0]) setActive(content.categories[0].name); },[content,active]);
   const category=content.categories.find(c=>c.name===active)??content.categories[0];
   if(!category) return null;
   const photoFor=(s:Service)=>s.image||category.image||images[category.name]||'/images/room-forest.jpeg';
   const posFor=(s:Service)=>`center ${s.imagePos??category.imagePos??50}%`;
   return <main className="treatments-app site-lux"><SiteHeader content={content} overlay/>
     <PageHero image={content.servicesHeroImage} label={content.homeMenuEyebrow||'Treatment menu'} title={content.servicesTitle||'Treatments'} alt={`${content.businessName} treatment`}/>
-    <nav className="treatment-tabs" aria-label="Treatment categories">{content.categories.map(c=><button key={c.name} className={active===c.name?'active':''} onClick={()=>setActive(c.name)}>{c.name}</button>)}</nav>
+    <nav className="treatment-tabs" aria-label="Treatment categories">{content.categories.map(c=><button key={c.name} className={category.name===c.name?'active':''} onClick={()=>setActive(c.name)}>{c.name}</button>)}</nav>
     <section className="catalogue-list" aria-live="polite">
       <div className={category.banner?'catalogue-intro has-banner':'catalogue-intro'} style={category.banner?{backgroundImage:`linear-gradient(to bottom,rgba(4,32,34,.1) 0%,rgba(4,32,34,.22) 45%,rgba(4,32,34,.72) 100%),url('${category.banner}')`,backgroundPosition:`center ${category.bannerPos??50}%`}:undefined}><h2>{category.name}</h2><p>{category.short}</p></div>
       {category.services.map((service)=><button className="luxury-treatment-card" onClick={()=>setSelected(service)} key={service.name}>
@@ -42,7 +41,7 @@ export default function Services(){
           <div className="detail-meta"><span><i>◷</i> {selected.duration}</span><span className="price">{selected.price}</span></div>
           {selected.description&&<p className="detail-desc">{selected.description}</p>}
           {selected.note&&<p className="detail-note"><b>Please note:</b> {selected.note}</p>}
-          <a className="primary" href="/book">Book this treatment</a>
+          <a className="primary" href={`/book?treatment=${encodeURIComponent(selected.name)}`}>Book this treatment</a>
         </div>
       </div>
     </div>}

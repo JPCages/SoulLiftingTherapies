@@ -1,6 +1,7 @@
 import {getSetting,setSetting,readSiteContent,type NewBookingRequest} from './db';
 import {sendEmail,esc,type EmailResult} from './email';
 import {siteUrl} from './seo';
+import {formatWhen,depositLine,shortTreatment} from './reply';
 
 export const ALERT_EMAIL_KEY='booking_alert_email';
 // The last failed alert, so the portal can say alerts have stopped instead of
@@ -90,4 +91,45 @@ export async function confirmToCustomer(r:NewBookingRequest):Promise<EmailResult
   <p style="margin:0">${esc(c.businessName)}</p>
 </div>`;
   return sendEmail({to:r.email,subject:`${c.businessName}: we have your request`,text,html,replyTo:c.email?.trim()||null});
+}
+
+// --- Appointments: the confirmation Emma sends when she sets a time, and the
+// reminder the site sends the day before. Both come from her own mailbox and
+// replies go to her public email.
+type Appointment={name:string;email:string|null;treatment:string;location:string;appointment_at:string|null};
+
+function appointmentEmail(kind:'confirm'|'reminder',r:Appointment,c:Awaited<ReturnType<typeof readSiteContent>>){
+  const when=r.appointment_at?formatWhen(r.appointment_at):'';
+  const where=/^either/i.test(r.location)?'':r.location;
+  const deposit=kind==='confirm'?depositLine(c):'';
+  const phone=c.phone?.trim();
+  const heading=kind==='confirm'?"You're booked in.":'See you tomorrow.';
+  const rows:[string,string][]=([['Treatment',shortTreatment(r.treatment)],['When',when],['Where',where]] as [string,string][]).filter(([,v])=>v);
+  const change=phone?`Need to change it? Call or text ${phone}.`:'Need to change it? Just reply to this email.';
+  const text=[`Hi ${r.name},`,'',heading,'',...rows.map(([k,v])=>`${k}: ${v}`),'',deposit,deposit?'':null,change,'',c.businessName].filter(l=>l!==null).join('\n');
+  const depositHtml=deposit?`<p style="margin:16px 0 0;padding:12px 14px;background:#f4efe6;border-radius:8px">To hold your slot, please pay the ${esc(c.depositAmount?.trim()?c.depositAmount.trim()+' ':'')}deposit: <a href="${esc(c.depositLink!.trim())}" style="color:#00544d;font-weight:bold">Pay deposit</a></p>`:'';
+  const html=`<div style="font-family:Arial,sans-serif;font-size:15px;color:#173235;max-width:560px">
+  <p style="margin:0 0 12px">Hi ${esc(r.name)},</p>
+  <p style="font-size:18px;margin:0 0 12px"><b>${esc(heading)}</b></p>
+  <table style="border-collapse:collapse;width:100%">${rows.map(([k,v])=>`<tr><td style="padding:6px 12px 6px 0;color:#5d6d69;white-space:nowrap">${esc(k)}</td><td style="padding:6px 0">${esc(v)}</td></tr>`).join('')}</table>
+  ${depositHtml}
+  <p style="margin:18px 0 6px;color:#5d6d69">${phone?`Need to change it? Call or text <a href="tel:${esc(phone.replace(/\s/g,''))}" style="color:#00544d">${esc(phone)}</a>.`:'Need to change it? Just reply to this email.'}</p>
+  <p style="margin:0">${esc(c.businessName)}</p>
+</div>`;
+  const subject=kind==='confirm'?`${c.businessName}: booked for ${when}`:`Reminder: ${shortTreatment(r.treatment)} ${when}`;
+  return {text,html,subject};
+}
+
+export async function sendAppointmentConfirmation(r:Appointment):Promise<EmailResult|null>{
+  if(!r.email||!r.appointment_at)return null;
+  const c=await readSiteContent();
+  const m=appointmentEmail('confirm',r,c);
+  return sendEmail({to:r.email,...m,replyTo:c.email?.trim()||null});
+}
+
+export async function sendAppointmentReminder(r:Appointment):Promise<EmailResult|null>{
+  if(!r.email||!r.appointment_at)return null;
+  const c=await readSiteContent();
+  const m=appointmentEmail('reminder',r,c);
+  return sendEmail({to:r.email,...m,replyTo:c.email?.trim()||null});
 }
